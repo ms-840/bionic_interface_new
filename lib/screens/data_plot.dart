@@ -9,6 +9,8 @@ import 'package:provider/provider.dart';
 //TODO: this still needs editing
 
 class DataPresentationPage extends StatefulWidget{
+  const DataPresentationPage({super.key});
+
   @override
   State<DataPresentationPage> createState() => _DataPresentationPageState();
 }
@@ -196,7 +198,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
                   sideTitles: SideTitles(interval: 1, showTitles: true, reservedSize: 40,)
               ),
               leftTitles: AxisTitles(
-                axisNameWidget: Text("emg2 (uV)"),
+                axisNameWidget: const Text("emg2 (uV)"),
                 sideTitles: SideTitles(interval: emg2PlotScale/2, showTitles: true, reservedSize: 40,),
               ),
             ),
@@ -307,7 +309,7 @@ class SettingsDialog extends StatefulWidget{
   final double emg1Limits;
   
   
-  const SettingsDialog({
+  const SettingsDialog({super.key,
     required this.timeValue,
     this.emg2Limits = 1000,
     this.emg1Limits = 1000,

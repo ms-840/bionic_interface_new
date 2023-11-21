@@ -11,7 +11,7 @@ class DataHandler extends ChangeNotifier{
   //  - generate data while there is nothing that actually sends data
   //  - once we have something actually measuring data, dealing with passing that to other classes
 
-  final double samplingRate = 640;//should be samples per second
+  final double samplingRate = 100;//should be samples per second
 
   late BleInterface bleInterface;
 

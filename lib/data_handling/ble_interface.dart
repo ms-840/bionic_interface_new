@@ -3,11 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
 
-import 'package:bionic_interface/main.dart';
 import 'data_buffer.dart';
 
 import 'package:flutter_blue_plus/flutter_blue_plus.dart';
-import 'package:flutter_reactive_ble/flutter_reactive_ble.dart' show FlutterReactiveBle,requestMtu;
+import 'package:flutter_reactive_ble/flutter_reactive_ble.dart' show FlutterReactiveBle;
 
 class BleInterface extends ChangeNotifier{
   // this should be used to connect to and receive information from the BLE device
@@ -44,15 +43,12 @@ class BleInterface extends ChangeNotifier{
   bool disconnectDesired = false;
 
 
-
-
-  List<List<int>> receivedData = [];
-
   //the unchanged data from the ble connection is stored in this buffer
   DataBuffer receivedDataBuffer = DataBuffer(maxBufferSize: 1000, targetFillPercentage: 0.01);
 
 
-  //according to documentation, we should wait for the BleStatus.ready from the statusStream to make sure the BLE-stack is properly initialized
+  //according to documentation, we should wait for the BleStatus.ready
+  // from the statusStream to make sure the BLE-stack is properly initialized
   //before calling any of the other BLE operations
 
   //#endregion
