@@ -10,7 +10,7 @@ class GeneralHandler extends ChangeNotifier{
 
   //Keys and related ble codes
   final gripPatterns = {"gripName": 0, };
-  final gripRules = {"patternName": 0, };
+  final gripRules = {"patternName": 1, "None":0}; //include a key for none
 
   late User currentUser;
   late BleInterface bleInterface;
