@@ -35,7 +35,15 @@ class User{
 
   Map<String,String> get gripSettings{
     return _gripSettings;
-}
+  }
+
+  String ruleForGrip(String grip){
+    final rule = _gripSettings[grip];
+    if(rule!=null){
+      return rule;
+    }
+    return "None";
+  }
 
   set importGripSettings (Map<String,String> gripSettings){
     _gripSettings = gripSettings;

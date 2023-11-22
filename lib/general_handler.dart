@@ -29,4 +29,12 @@ class GeneralHandler extends ChangeNotifier{
     return [currentUser.hasAdminAccess, currentUser.hasChildLock];
   }
 
+  //#region ble commands
+  Future<void> updateGripSettingsBle(String grip, String rule){
+    //Todo: send the commands for updating grip settings
+    return Future<>;
+  }
+
+  //#endregion
+
 }

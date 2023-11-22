@@ -18,7 +18,6 @@ class GripSettings extends StatelessWidget{
 
    */
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,14 +25,14 @@ class GripSettings extends StatelessWidget{
         title: const Text("Rebel Bionics"),
         actions: [],
       ),
-      body: Expanded(child: GripSettingsList()),
+      body: const Expanded(child: GripSettingsList()),
     );
   }
-
-
 }
 
 class GripSettingsList extends StatefulWidget{
+  const GripSettingsList({super.key});
+
   @override
   State<GripSettingsList> createState() => _GripSettingsList();
 }
@@ -63,11 +62,25 @@ class _GripSettingsList extends State<GripSettingsList>{
           leading: const Text("image to come"), //this should be the relevant image
           trailing: const Text("rule indicator to come"),//this will be the widget where you can see the selected grip pattern
           visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
-          onTap: (){
+          onTap: () async{
               if(!generalHandler.userAccess[1]){ //only execute if the user does not have a child lock
                 //open dialog to change this setting
                 //send update command to board
                 //update the users settings
+                var currentRule = generalHandler.currentUser.ruleForGrip(gripName);
+                final newRule = await showDialog(
+                    context: context,
+                    builder: (context) => GripSettingDialog(
+                        gripName: gripName,
+                        currentRule: currentRule,
+                        gripRules: generalHandler.gripRules
+                    )
+                );
+                if(newRule!=null &&
+                    newRule != currentRule){
+                    await generalHandler.updateGripSettingsBle(gripName, newRule);
+                    generalHandler.currentUser.updateGripSettings(gripName, newRule);
+                }
               }
           },
         );
@@ -104,6 +117,13 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
     _currentRule = widget.currentRule;
     _gripRules = widget.gripRules;
   }
+
+  void changeSelectedRule(String newRule){
+    setState(() {
+      _currentRule = newRule;
+    });
+  }
+
   //todo: fill this out
   @override
   Widget build(BuildContext context){
@@ -115,20 +135,37 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
             children: [
-              Row(), //Row with picture and name of grip
+              Row( //Row with picture and name of grip
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 30,),
+                  ),
+                  Text(_gripName,),
+                ],
+              ),
               const SizedBox(height: 5,),
-              Expanded(child: child), //this needs to be another list view with grip rules
+              Expanded(child: GripRulesList(
+                  currentRule: _currentRule,
+                  gripRules: _gripRules,
+                  changeCurrentRule: changeSelectedRule)
+              ), //this needs to be another list view with grip rules
               const SizedBox(height: 5,),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   ElevatedButton(
-                      onPressed: (){},
+                      onPressed: (){
+                        Navigator.pop(context);
+                      },
                       child: const Text("Cancel"),
                   ),
                   const SizedBox(width: 5,),
                   ElevatedButton(
-                    onPressed: (){}, //return the new setting
+                    onPressed: (){
+                      Navigator.pop(context, _currentRule);
+                    }, //return the new setting
                     child: const Text("OK"),
                   ),
                 ],
@@ -137,6 +174,56 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
           ),
         ),
       ),
+    );
+  }
+}
+
+class GripRulesList extends StatefulWidget{
+
+  final String currentRule;
+  final Map<String, int> gripRules;
+  final Function(String newValue) changeCurrentRule;
+
+
+  const GripRulesList({super.key,
+    required this.currentRule,
+    required this.gripRules,
+    required this.changeCurrentRule,
+  });
+
+  @override
+  State<GripRulesList> createState() => _GripRulesList();
+}
+
+class _GripRulesList extends State<GripRulesList>{
+
+  late String _currentRule;
+  late Map<String, int> _gripRules;
+
+  @override
+  void initState(){
+    _currentRule = widget.currentRule;
+    _gripRules = widget.gripRules;
+  }
+
+  @override
+  Widget build(BuildContext context){
+    return ListView.builder(
+      itemCount: _gripRules.length,
+      itemBuilder: (BuildContext context, int index){
+        String gripRule = _gripRules.keys.elementAt(index);
+        return ListTile(
+          title: Text(gripRule),
+          selected: gripRule == _currentRule,
+          //tileColor: ,
+          leading: const Text("image to come"), //this should be the relevant image
+          trailing: const Text("rule indicator to come"),//this will be the widget where you can see the selected grip pattern
+          visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
+          onTap: (){
+            widget.changeCurrentRule(gripRule);
+          },
+        );
+      },
     );
   }
 }
