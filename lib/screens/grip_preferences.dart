@@ -25,7 +25,11 @@ class GripSettings extends StatelessWidget{
         title: const Text("Rebel Bionics"),
         actions: [],
       ),
-      body: const Expanded(child: GripSettingsList()),
+      body: const Column(
+        children: [
+           Expanded(child: GripSettingsList()),
+        ],
+      ),
     );
   }
 }
@@ -38,13 +42,11 @@ class GripSettingsList extends StatefulWidget{
 }
 
 class _GripSettingsList extends State<GripSettingsList>{
-  
-  late GeneralHandler generalHandler;
-  
+
   @override
   void initState(){
     super.initState();
-    generalHandler = context.watch<GeneralHandler>();
+    //generalHandler = context.watch<GeneralHandler>();
 
     //TODO: read in data from the hand or present user settings if possible
     // Otherwise go to a default.
@@ -52,6 +54,7 @@ class _GripSettingsList extends State<GripSettingsList>{
 
   @override
   Widget build(BuildContext context){
+    GeneralHandler generalHandler = context.watch<GeneralHandler>();
     return ListView.builder(
       itemCount: generalHandler.gripPatterns.length,
       itemBuilder: (BuildContext context, int index){
@@ -59,8 +62,8 @@ class _GripSettingsList extends State<GripSettingsList>{
         return ListTile(
           title: Text(gripName),
           //tileColor: ,
-          leading: const Text("image to come"), //this should be the relevant image
-          trailing: const Text("rule indicator to come"),//this will be the widget where you can see the selected grip pattern
+          leading: Image.asset('assets/images/logo.png', fit: BoxFit.contain,), //this should be the relevant image
+          trailing: Text(generalHandler.currentUser.ruleForGrip(gripName)),//this will be the widget where you can see the selected grip pattern
           visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
           onTap: () async{
               if(!generalHandler.userAccess[1]){ //only execute if the user does not have a child lock
@@ -78,8 +81,11 @@ class _GripSettingsList extends State<GripSettingsList>{
                 );
                 if(newRule!=null &&
                     newRule != currentRule){
-                    await generalHandler.updateGripSettingsBle(gripName, newRule);
-                    generalHandler.currentUser.updateGripSettings(gripName, newRule);
+                    generalHandler.updateGripSettingsBle(gripName, newRule); //This should actually be awaited
+
+                    setState(() {
+                      generalHandler.currentUser.updateGripSettings(gripName, newRule);
+                    });
                 }
               }
           },
@@ -95,14 +101,15 @@ class GripSettingDialog extends StatefulWidget{
   final String currentRule;
   final Map<String, int> gripRules;
 
-  GripSettingDialog({super.key,
+  const GripSettingDialog({super.key,
     required this.gripName,
     required this.currentRule,
     required this.gripRules,
-  })
+  });
 
   @override
   State<GripSettingDialog> createState() => _GripSettingsDialog();
+
 }
 
 class _GripSettingsDialog extends State<GripSettingDialog>{
@@ -128,50 +135,47 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
   @override
   Widget build(BuildContext context){
     return Dialog(
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row( //Row with picture and name of grip
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 30,),
-                  ),
-                  Text(_gripName,),
-                ],
-              ),
-              const SizedBox(height: 5,),
-              Expanded(child: GripRulesList(
-                  currentRule: _currentRule,
-                  gripRules: _gripRules,
-                  changeCurrentRule: changeSelectedRule)
-              ), //this needs to be another list view with grip rules
-              const SizedBox(height: 5,),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  ElevatedButton(
-                      onPressed: (){
-                        Navigator.pop(context);
-                      },
-                      child: const Text("Cancel"),
-                  ),
-                  const SizedBox(width: 5,),
-                  ElevatedButton(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Row( //Row with picture and name of grip
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 120,),
+                ),
+                Text(_gripName,),
+              ],
+            ),
+            const SizedBox(height: 5,),
+            GripRulesList(
+                currentRule: _currentRule,
+                gripRules: _gripRules,
+                changeCurrentRule: changeSelectedRule), //this needs to be another list view with grip rules
+            const SizedBox(height: 5,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
                     onPressed: (){
-                      Navigator.pop(context, _currentRule);
-                    }, //return the new setting
-                    child: const Text("OK"),
-                  ),
-                ],
-              )
-            ],
-          ),
+                      Navigator.pop(context);
+                    },
+                    child: const Text("Cancel"),
+                ),
+                const SizedBox(width: 5,),
+                ElevatedButton(
+                  onPressed: (){
+                    Navigator.pop(context, _currentRule);
+                  }, //return the new setting
+                  child: const Text("OK"),
+                ),
+              ],
+            )
+          ],
         ),
       ),
     );
@@ -210,18 +214,22 @@ class _GripRulesList extends State<GripRulesList>{
   Widget build(BuildContext context){
     return ListView.builder(
       itemCount: _gripRules.length,
+      shrinkWrap: true,
       itemBuilder: (BuildContext context, int index){
         String gripRule = _gripRules.keys.elementAt(index);
         return ListTile(
           title: Text(gripRule),
           selected: gripRule == _currentRule,
           //tileColor: ,
-          leading: const Text("image to come"), //this should be the relevant image
-          trailing: const Text("rule indicator to come"),//this will be the widget where you can see the selected grip pattern
+          leading: const Text("image?"), //this should be the relevant image
           visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
           onTap: (){
-            widget.changeCurrentRule(gripRule);
+            setState(() {
+              widget.changeCurrentRule(gripRule);
+              _currentRule = gripRule;
+            });
           },
+
         );
       },
     );

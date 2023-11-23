@@ -1,15 +1,19 @@
 import 'package:flutter/material.dart';
-import 'main.dart';
+import 'screens/home.dart';
+import 'screens/data_plot.dart';
+import 'screens/grip_preferences.dart';
+import 'screens/new_user.dart';
+
 
 class RouteGenerator{
   static Route<dynamic> generateRoute(RouteSettings settings){
     switch(settings.name){
       case '/home':
-        return _errorRoute();
+        return MaterialPageRoute(builder: (_) => const HomePage());
       case '/plot':
-        return _errorRoute();
+        return MaterialPageRoute(builder: (_) => const DataPresentationPage());
       case '/grip':
-        return _errorRoute();
+        return MaterialPageRoute(builder: (_) => const GripSettings());
       default:
         return _errorRoute();
     }

@@ -68,9 +68,7 @@ class User{
 class AnonymousUser extends User{
   //This is the user class to be used when no login has occurred
   AnonymousUser() : super(''){
-    super._userName = "";
-    super._adminAccess = false;
-    super._childLock = false;
+    print("Anonymous User created");
   }
 
   void clearUserData(){

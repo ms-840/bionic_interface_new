@@ -9,15 +9,13 @@ import 'user/user.dart';
 class GeneralHandler extends ChangeNotifier{
 
   //Keys and related ble codes
-  final gripPatterns = {"gripName": 0, };
-  final gripRules = {"patternName": 1, "None":0}; //include a key for none
+  final gripPatterns = {"grip 1": 0, "grip 2": 1, "grip 3":2, "grip 4":3};
+  final gripRules = {"None":0, "rule 1": 1, "rule 2":2, "rule 3":3}; //include a key for none
 
-  late User currentUser;
+  User currentUser = AnonymousUser();
   late BleInterface bleInterface;
 
-  GeneralHandler(this.bleInterface){
-    currentUser = AnonymousUser();
-  }
+  GeneralHandler(this.bleInterface);
 
   void userLogIn(){
     //TODO: implement
@@ -30,9 +28,8 @@ class GeneralHandler extends ChangeNotifier{
   }
 
   //#region ble commands
-  Future<void> updateGripSettingsBle(String grip, String rule){
+  void updateGripSettingsBle(String grip, String rule){
     //Todo: send the commands for updating grip settings
-    return Future<>;
   }
 
   //#endregion
