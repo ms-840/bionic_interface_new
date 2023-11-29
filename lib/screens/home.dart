@@ -52,13 +52,6 @@ class HomePage extends StatelessWidget{
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          ElevatedButton(
-              onPressed: (){
-                var generalHandler = Provider.of<GeneralHandler>(context, listen: false);
-                print(generalHandler.userAccess);
-              },
-              child: const Text("Test")),
         ],
       ),
 

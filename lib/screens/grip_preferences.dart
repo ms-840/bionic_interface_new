@@ -55,17 +55,27 @@ class _GripSettingsList extends State<GripSettingsList>{
   @override
   Widget build(BuildContext context){
     GeneralHandler generalHandler = context.watch<GeneralHandler>();
+    String selectedGrip = "";
     return ListView.builder(
       itemCount: generalHandler.gripPatterns.length,
       itemBuilder: (BuildContext context, int index){
         String gripName = generalHandler.gripPatterns.keys.elementAt(index);
         return ListTile(
-          title: Text(gripName),
+          title: Row(
+            children: [
+              Text(gripName),
+              const SizedBox(width: 130,),
+              Text(gripName),
+            ],
+          ),
           //tileColor: ,
           leading: Image.asset('assets/images/logo.png', fit: BoxFit.contain,), //this should be the relevant image
-          trailing: Text(generalHandler.currentUser.ruleForGrip(gripName)),//this will be the widget where you can see the selected grip pattern
-          visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
+          //trailing: Text(generalHandler.currentUser.ruleForGrip(gripName)),//this will be the widget where you can see the selected grip pattern
+          visualDensity: const VisualDensity(horizontal: 4, vertical: 4),
+          selected: gripName == selectedGrip,
+          selectedColor: Theme.of(context).primaryColor,
           onTap: () async{
+              selectedGrip = gripName;
               if(!generalHandler.userAccess[1]){ //only execute if the user does not have a child lock
                 //open dialog to change this setting
                 //send update command to board
@@ -82,7 +92,6 @@ class _GripSettingsList extends State<GripSettingsList>{
                 if(newRule!=null &&
                     newRule != currentRule){
                     generalHandler.updateGripSettingsBle(gripName, newRule); //This should actually be awaited
-
                     setState(() {
                       generalHandler.currentUser.updateGripSettings(gripName, newRule);
                     });
@@ -131,7 +140,6 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
     });
   }
 
-  //todo: fill this out
   @override
   Widget build(BuildContext context){
     return Dialog(
@@ -145,7 +153,7 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Padding(
-                  padding: const EdgeInsets.all(8.0),
+                  padding: const EdgeInsets.all(10.0),
                   child: Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 120,),
                 ),
                 Text(_gripName,),
@@ -155,7 +163,7 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
             GripRulesList(
                 currentRule: _currentRule,
                 gripRules: _gripRules,
-                changeCurrentRule: changeSelectedRule), //this needs to be another list view with grip rules
+                changeCurrentRule: changeSelectedRule),
             const SizedBox(height: 5,),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -220,6 +228,7 @@ class _GripRulesList extends State<GripRulesList>{
         return ListTile(
           title: Text(gripRule),
           selected: gripRule == _currentRule,
+          //selectedColor: Theme.of(context).cardColor,
           //tileColor: ,
           leading: const Text("image?"), //this should be the relevant image
           visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
