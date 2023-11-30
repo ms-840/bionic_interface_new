@@ -9,7 +9,11 @@ class User{
   String name = ""; //not sure if this is necessary
   bool _adminAccess = false;
   bool _childLock = false; //not sure yet if this is necessary
+
+
   Map<Grip,Trigger> _gripSettings = {}; //Format gripName:ruleName
+  //TODO: it may be good to keep track of both settings for the separated and combined grip lists
+  bool useThumbToggling = true;
   Map<String,double> thresholdValues = {};
   //this could later include settings dictionary
 
@@ -64,6 +68,9 @@ class User{
     if(_gripSettings.containsKey(grip)){_gripSettings.remove(grip);}
   }
 
+  void toggleThumbTap(){
+    useThumbToggling = !useThumbToggling;
+  }
 }
 
 class AnonymousUser extends User{

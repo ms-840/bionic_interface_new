@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'screens/home.dart';
 import 'screens/data_plot.dart';
-import 'screens/grip_preferences.dart';
+import 'screens/grip_preferences_old.dart';
 import 'screens/new_user.dart';
 
 

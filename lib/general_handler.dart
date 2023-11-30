@@ -63,6 +63,15 @@ class GeneralHandler extends ChangeNotifier{
     return [currentUser.hasAdminAccess, currentUser.hasChildLock];
   }
 
+  bool get useThumbToggling{
+    return currentUser.useThumbToggling;
+  }
+
+  void toggleThumbTapUse(){
+    currentUser.toggleThumbTap();
+    notifyListeners();
+  }
+
   //#region ble commands
   void updateGripSettingsBle(String grip, String rule){
     //Todo: send the commands for updating grip settings
