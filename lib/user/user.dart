@@ -2,13 +2,14 @@
 // and their access status
 // if no specific user is logged in, a generic/anonymous user profile should be used
 // im also not sure yet how to best make the user log in
+import 'package:bionic_interface/grips.dart';
 
 class User{
   late final String _userName;
   String name = ""; //not sure if this is necessary
   bool _adminAccess = false;
   bool _childLock = false; //not sure yet if this is necessary
-  Map<String,String> _gripSettings = {}; //Format gripName:ruleName
+  Map<Grip,Trigger> _gripSettings = {}; //Format gripName:ruleName
   Map<String,double> thresholdValues = {};
   //this could later include settings dictionary
 
@@ -33,19 +34,19 @@ class User{
     _childLock = childLock;
   }
 
-  Map<String,String> get gripSettings{
+  Map<Grip,Trigger> get gripSettings{
     return _gripSettings;
   }
 
-  String ruleForGrip(String grip){
-    final rule = _gripSettings[grip];
-    if(rule!=null){
-      return rule;
+  Trigger ruleForGrip(Grip grip){
+    final trigger = _gripSettings[grip];
+    if(trigger!=null){
+      return trigger;
     }
-    return "None";
+    return Trigger(name: "None", bleCommand: "0");
   }
 
-  set importGripSettings (Map<String,String> gripSettings){
+  set importGripSettings (Map<Grip,Trigger> gripSettings){
     _gripSettings = gripSettings;
   }
 
@@ -55,11 +56,11 @@ class User{
   //constructor
   User(this._userName, [this._adminAccess=false, this._childLock=false]);
 
-  void updateGripSettings(String grip, String rule){
-    _gripSettings[grip] = rule;
+  void updateGripSettings(Grip grip, Trigger trigger){
+    _gripSettings[grip] = trigger;
   }
 
-  void removeGripSetting(String grip){
+  void removeGripSetting(Grip grip){
     if(_gripSettings.containsKey(grip)){_gripSettings.remove(grip);}
   }
 

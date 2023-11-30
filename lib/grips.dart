@@ -11,7 +11,8 @@ class Grip{
     required this.name,
     required this.type,
     required this.bleCommand,
-    required this.assetLocation});
+    required this.assetLocation
+  });
 
 }
 
@@ -20,6 +21,7 @@ class Trigger{
   late String bleCommand;
   late double timeSetting;
   late String description;
+  late String assetLocation;
 
   Trigger({required this.name, required this.bleCommand, this.timeSetting = 0});
 

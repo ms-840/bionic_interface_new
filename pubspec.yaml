@@ -95,6 +95,17 @@ flutter:
 
   assets:
     - assets/images/logo.png
+    - assets/images/grips/index_point.jpg
+    - assets/images/grips/precision_open.jpg
+    - assets/images/grips/relaxed.jpg
+    - assets/images/grips/power_grip.jpg
+    - assets/images/grips/hook.jpg
+    - assets/images/grips/lateral_key.jpg
+    - assets/images/grips/tripod.jpg
+    - assets/images/grips/mouse.jpg
+    - assets/images/grips/active_index.jpg
+    - assets/images/grips/trigger.jpg
+
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bionic_interface/general_handler.dart';
+import 'package:bionic_interface/grips.dart';
 
 
 class GripSettings extends StatelessWidget{
@@ -55,37 +56,40 @@ class _GripSettingsList extends State<GripSettingsList>{
   @override
   Widget build(BuildContext context){
     GeneralHandler generalHandler = context.watch<GeneralHandler>();
+    var grips = generalHandler.gripPatterns;
     String selectedGrip = "";
     return ListView.builder(
       itemCount: generalHandler.gripPatterns.length,
       itemBuilder: (BuildContext context, int index){
-        String gripName = generalHandler.gripPatterns.keys.elementAt(index);
+        var grips = generalHandler.gripPatterns;
+        String gripName = grips.keys.elementAt(index);
         return ListTile(
           title: Row(
             children: [
               Text(gripName),
-              const SizedBox(width: 130,),
-              Text(gripName),
+              const Expanded(child: SizedBox.shrink()),
+              Text(generalHandler.currentUser.ruleForGrip(grips[gripName]!).name),
             ],
           ),
           //tileColor: ,
-          leading: Image.asset('assets/images/logo.png', fit: BoxFit.contain,), //this should be the relevant image
+          leading: Image.asset(grips[gripName]!.assetLocation, fit: BoxFit.contain,), //this should be the relevant image
           //trailing: Text(generalHandler.currentUser.ruleForGrip(gripName)),//this will be the widget where you can see the selected grip pattern
           visualDensity: const VisualDensity(horizontal: 4, vertical: 4),
           selected: gripName == selectedGrip,
           selectedColor: Theme.of(context).primaryColor,
           onTap: () async{
               selectedGrip = gripName;
+              var grips = generalHandler.gripPatterns;
               if(!generalHandler.userAccess[1]){ //only execute if the user does not have a child lock
                 //open dialog to change this setting
                 //send update command to board
                 //update the users settings
-                var currentRule = generalHandler.currentUser.ruleForGrip(gripName);
+                var currentRule = generalHandler.currentUser.ruleForGrip(grips[gripName]!);
                 final newRule = await showDialog(
                     context: context,
                     builder: (context) => GripSettingDialog(
                         gripName: gripName,
-                        currentRule: currentRule,
+                        currentRule: currentRule.name,
                         gripRules: generalHandler.gripRules
                     )
                 );
@@ -93,7 +97,7 @@ class _GripSettingsList extends State<GripSettingsList>{
                     newRule != currentRule){
                     generalHandler.updateGripSettingsBle(gripName, newRule); //This should actually be awaited
                     setState(() {
-                      generalHandler.currentUser.updateGripSettings(gripName, newRule);
+                      generalHandler.currentUser.updateGripSettings(grips[gripName]!, newRule);
                     });
                 }
               }
@@ -108,7 +112,7 @@ class GripSettingDialog extends StatefulWidget{
 
   final String gripName;
   final String currentRule;
-  final Map<String, int> gripRules;
+  final Map<String, Trigger> gripRules;
 
   const GripSettingDialog({super.key,
     required this.gripName,
@@ -125,7 +129,7 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
 
   late String _gripName;
   late String _currentRule;
-  late Map<String, int> _gripRules;
+  late Map<String, Trigger> _gripRules;
 
   @override
   void initState(){
@@ -193,7 +197,7 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
 class GripRulesList extends StatefulWidget{
 
   final String currentRule;
-  final Map<String, int> gripRules;
+  final Map<String, Trigger> gripRules;
   final Function(String newValue) changeCurrentRule;
 
 
@@ -210,7 +214,7 @@ class GripRulesList extends StatefulWidget{
 class _GripRulesList extends State<GripRulesList>{
 
   late String _currentRule;
-  late Map<String, int> _gripRules;
+  late Map<String, Trigger> _gripRules;
 
   @override
   void initState(){
