@@ -4,7 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:bionic_interface/general_handler.dart';
-import 'package:bionic_interface/grips.dart';
+import 'package:bionic_interface/grip_trigger_action.dart';
 
 
 class GripSettings extends StatelessWidget{
@@ -94,13 +94,13 @@ class _GripSettingsList extends State<GripSettingsList>{
                     builder: (context) => GripSettingDialog(
                         gripName: gripName,
                         currentRule: currentRule.name,
-                        gripRules: generalHandler.gripRules
+                        gripRules: generalHandler.triggers
                     )
                 );
                 if(newRule!=null &&
                     newRule != currentRule){
                     generalHandler.updateGripSettingsBle(gripName, newRule); //This should actually be awaited
-                    var rules = generalHandler.gripRules;
+                    var rules = generalHandler.triggers;
                     setState(() {
                       generalHandler.currentUser.updateGripSettings(grips[gripName]!, rules[newRule]!);
                     });

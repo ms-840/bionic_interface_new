@@ -2,9 +2,12 @@
 // and their access status
 // if no specific user is logged in, a generic/anonymous user profile should be used
 // im also not sure yet how to best make the user log in
-import 'package:bionic_interface/grips.dart';
+import 'package:bionic_interface/grip_trigger_action.dart';
 
 class User{
+  //constructor
+  User(this._userName, [this._adminAccess=false, this._childLock=false]);
+
   late final String _userName;
   String name = ""; //not sure if this is necessary
   bool _adminAccess = false;
@@ -12,12 +15,29 @@ class User{
 
 
   Map<Grip,Trigger> _gripSettings = {}; //Format gripName:ruleName
-  //TODO: it may be good to keep track of both settings for the separated and combined grip lists
+
+  Map<String, HandAction> combinedActions = {
+    "Next Grip" : HandAction(),
+    "Grip 1" : HandAction(),
+    "Grip 2" : HandAction(),
+    "Grip 3" : HandAction(),
+  };
+
+  Map<String, HandAction> unOpposedActions = {
+    "Next Grip" : HandAction(),
+    "Opposed Grip 1" : HandAction(),
+    "Opposed Grip 2" : HandAction(),
+    "Opposed Grip 3" : HandAction(),
+    "Unopposed Grip 1" : HandAction(),
+    "Unopposed Grip 2" : HandAction(),
+    "Unopposed Grip 3" : HandAction(),
+  };
+
   bool useThumbToggling = true;
   Map<String,double> thresholdValues = {};
   //this could later include settings dictionary
 
-  //#region getters and setters
+
   String get userName{
     return _userName;
   }
@@ -54,11 +74,43 @@ class User{
     _gripSettings = gripSettings;
   }
 
+  void setCombinedAction({required String action, Grip? grip, required Trigger trigger}){
+    combinedActions[action] = HandAction(grip: grip, trigger: trigger);
+  }
 
-  //#endregion
+  void setUnOpposedAction({required String action, Grip? grip, required Trigger trigger}){
+    unOpposedActions[action] = HandAction(grip: grip, trigger: trigger);
+  }
 
-  //constructor
-  User(this._userName, [this._adminAccess=false, this._childLock=false]);
+  Trigger triggerForAction(String action){
+    Trigger? trigger;
+    if(useThumbToggling){
+      // use unOpposed action list
+      trigger = unOpposedActions[action]!.trigger;
+    }
+    else{
+      // use combined action list
+      trigger = combinedActions[action]!.trigger;
+    }
+    if(trigger!=null){
+      return trigger;
+    }
+    return Trigger(name: "None", bleCommand: "0");
+  }
+
+  Grip gripForAction(String action){
+    Grip? grip;
+    if(useThumbToggling){
+      grip = unOpposedActions[action]!.grip;
+    }
+    else{
+      grip = combinedActions[action]!.grip;
+    }
+    if(grip!=null){
+      return grip;
+    }
+    return Grip(name: "None", type: "", bleCommand: "", assetLocation: "");
+  }
 
   void updateGripSettings(Grip grip, Trigger trigger){
     _gripSettings[grip] = trigger;
@@ -71,6 +123,29 @@ class User{
   void toggleThumbTap(){
     useThumbToggling = !useThumbToggling;
   }
+
+  Map<String, HandAction> get opposedActions{
+    Map<String, HandAction> opposed = {};
+    for(var action in unOpposedActions.keys){
+      if(action.contains("Opposed")){
+        opposed[action] = unOpposedActions[action]!;
+      }
+    }
+    return opposed;
+  }
+
+  Map<String, HandAction> get unopposedActions{
+    Map<String, HandAction> unopposed = {};
+    for(var action in unOpposedActions.keys){
+      if(action.contains("Unopposed")){
+        unopposed[action] = unOpposedActions[action]!;
+      }
+    }
+    return unopposed;
+  }
+
+
+
 }
 
 class AnonymousUser extends User{

@@ -29,3 +29,10 @@ class Trigger{
     timeSetting = newTime;
   }
 }
+
+class HandAction{
+  late Grip? grip;
+  late Trigger? trigger;
+
+  HandAction({this.grip, this.trigger});
+}

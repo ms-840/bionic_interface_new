@@ -5,12 +5,16 @@ import 'package:flutter/material.dart';
 import 'data_handling/ble_interface.dart';
 import 'dart:async';
 import 'user/user.dart';
-import 'grips.dart';
+import 'grip_trigger_action.dart';
 
 class GeneralHandler extends ChangeNotifier{
+  late BleInterface bleInterface;
+
+  GeneralHandler(this.bleInterface);
 
   //Keys and related ble codes
   final gripPatterns = {
+    "None":           Grip(name: "None",           type: "",          bleCommand: "",  assetLocation: ""),
     "Index Point":    Grip(name: "Index Point",    type: "unopposed", bleCommand: "1", assetLocation: "assets/images/grips/index_point.jpg"),
     "Precision Open": Grip(name: "Precision Open", type: "opposed",   bleCommand: "2", assetLocation: "assets/images/grips/precision_open.jpg"),
     "Relaxed":        Grip(name: "Relaxed",        type: "unopposed", bleCommand: "3", assetLocation: "assets/images/grips/relaxed.jpg"),
@@ -38,7 +42,7 @@ class GeneralHandler extends ChangeNotifier{
   }
 
 
-  final gripRules = {
+  final triggers = {
     "None":         Trigger(name: "None",        bleCommand: "0"),
     "Open Open":    Trigger(name: "Open Open",   bleCommand: "1", timeSetting: 0.2),
     "Hold Open":    Trigger(name: "Hold Open",   bleCommand: "2", timeSetting: 0.2),
@@ -48,10 +52,10 @@ class GeneralHandler extends ChangeNotifier{
     //"Thumb Tap":  Trigger(name: "Thumb Tap",   bleCommand: "6"), // not changeable by user
   }; //include a key for none
 
-  User currentUser = AnonymousUser();
-  late BleInterface bleInterface;
 
-  GeneralHandler(this.bleInterface);
+
+  User currentUser = AnonymousUser();
+
 
   void userLogIn(){
     //TODO: implement
@@ -69,6 +73,16 @@ class GeneralHandler extends ChangeNotifier{
 
   void toggleThumbTapUse(){
     currentUser.toggleThumbTap();
+    notifyListeners();
+  }
+
+  void updateAction(String action, Grip? grip, Trigger trigger){
+    if(useThumbToggling){
+      currentUser.setUnOpposedAction(action: action, grip: grip, trigger: trigger);
+    }
+    else {
+      currentUser.setCombinedAction(action: action, grip: grip, trigger: trigger);
+    }
     notifyListeners();
   }
 

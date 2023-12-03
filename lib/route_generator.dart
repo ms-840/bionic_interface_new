@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'screens/home.dart';
 import 'screens/data_plot.dart';
 import 'screens/grip_preferences_old.dart';
+import 'screens/grip_preferences.dart';
 import 'screens/new_user.dart';
 
 
@@ -13,7 +14,7 @@ class RouteGenerator{
       case '/plot':
         return MaterialPageRoute(builder: (_) => const DataPresentationPage());
       case '/grip':
-        return MaterialPageRoute(builder: (_) => const GripSettings());
+        return MaterialPageRoute(builder: (_) => const GripSettings2());
       default:
         return _errorRoute();
     }
