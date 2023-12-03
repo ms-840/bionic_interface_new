@@ -35,4 +35,18 @@ class HandAction{
   late Trigger? trigger;
 
   HandAction({this.grip, this.trigger});
+
+  String get gripName{
+    if(grip!=null){
+      return grip!.name;
+    }
+    return "";
+  }
+  String get triggerName{
+    if(grip!=null){
+      return trigger!.name;
+    }
+    return "";
+  }
+
 }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:bionic_interface/general_handler.dart';
 import 'package:bionic_interface/grip_trigger_action.dart';
@@ -26,12 +27,14 @@ class GripSettings2 extends StatelessWidget{
           const ThumbTapSwitch(),
           //cycle trigger selector
           const CycleTriggerSelector(),
+          const ReorderableExample(),
+          /*
           Expanded(child: generalHandler.useThumbToggling?
                const DoubleTypeList()
               : const SingleTypeList()
           ),
 
-
+           */
 
         ],
       ),
@@ -85,7 +88,7 @@ class SingleTypeList extends StatelessWidget{
   @override
   Widget build (BuildContext context){
     //TODO: this should be more like a list view thing
-    return Container();
+    return const ReorderableGripList(listType: "Combined");
   }
 }
 
@@ -152,6 +155,46 @@ class DoubleTypeList extends StatelessWidget{
   }
 }
 
+class ReorderableExample extends StatefulWidget {
+  const ReorderableExample({super.key});
+
+  @override
+  State<ReorderableExample> createState() => _ReorderableListViewExampleState();
+}
+
+class _ReorderableListViewExampleState extends State<ReorderableExample> {
+  final List<int> _items = List<int>.generate(50, (int index) => index);
+
+  @override
+  Widget build(BuildContext context) {
+    final ColorScheme colorScheme = Theme.of(context).colorScheme;
+    final Color oddItemColor = colorScheme.primary.withOpacity(0.05);
+    final Color evenItemColor = colorScheme.primary.withOpacity(0.15);
+
+    return ReorderableListView(
+      padding: const EdgeInsets.symmetric(horizontal: 40),
+      shrinkWrap: true,
+      children: <Widget>[
+        for (int index = 0; index < _items.length; index += 1)
+          ListTile(
+            key: Key('$index'),
+            tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
+            title: Text('Item ${_items[index]}'),
+          ),
+      ],
+      onReorder: (int oldIndex, int newIndex) {
+        setState(() {
+          if (oldIndex < newIndex) {
+            newIndex -= 1;
+          }
+          final int item = _items.removeAt(oldIndex);
+          _items.insert(newIndex, item);
+        });
+      },
+    );
+  }
+}
+
 class ReorderableGripList extends StatefulWidget{
   //this also needs what list it should display
   final String listType; //this is used to figure out what map needs to be used (ie opposed, unopposed, combined)
@@ -165,12 +208,36 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
   // if the list view is the last one, it should have a plus and when pressed add another entry
   late String _listType;
   late Map<String, HandAction> _gripList;
-  late GeneralHandler generalHandler;
+  late List<HandAction>_items;
+  late List<String> _actionTitles;
+
 
   @override
   void initState(){
     _listType = widget.listType;
-    generalHandler = context.watch<GeneralHandler>();
+  }
+
+  @override
+  Widget build(BuildContext context){
+
+    Widget proxyDecorator(
+        Widget child, int index, Animation<double> animation) {
+      return AnimatedBuilder(
+        animation: animation,
+        builder: (BuildContext context, Widget? child) {
+          final double animValue = Curves.easeInOut.transform(animation.value);
+          final double elevation = lerpDouble(0, 6, animValue)!;
+          return Material(
+            elevation: elevation,
+
+            child: child,
+          );
+        },
+        child: child,
+      );
+    }
+
+    GeneralHandler generalHandler = context.watch<GeneralHandler>();
     switch (_listType){
       case "Opposed":
         _gripList = generalHandler.currentUser.opposedActions;
@@ -183,26 +250,55 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
         _gripList = generalHandler.currentUser.combinedActions;
         _gripList.remove("Next Grip");
     }
-  }
-
-  @override
-  Widget build(BuildContext context){
+    _items = _gripList.values.toList(); // indeces of this will change
+    _actionTitles = _gripList.keys.toList(); //indeces of this will be constant
 
     return ReorderableListView(
         padding: const EdgeInsets.symmetric(horizontal: 40),
+        shrinkWrap: true,
         children: <Widget>[
-          for(int index = 0; index < _gripList.keys.length; index ++){
+          for(var (index, action) in _items.indexed)
             //The list tiles should not be the grip list itself, but rather a list of the grips inside?
             ListTile(
-              key: Key(),
-              title: ,
-            )
-          }
+              key: Key("$index"), //This as a key is not great, but will keep it for now
+              title: Row(
+               children: [
+                 Text(_actionTitles[index]),
+                 const SizedBox.shrink(),
+                 Text(action.gripName),
+                 const SizedBox.shrink(),
+                 ElevatedButton(
+                   onPressed: () async{
+                     if(!generalHandler.userAccess[1]){
+                       var currentTrigger = action.trigger;
+                       var triggers = generalHandler.triggers;
+                       final newTrigger = await showDialog(
+                           context: context,
+                           builder: (context) => SettingDialog(
+                               action: _actionTitles[index],
+                               currentTrigger: action.triggerName,
+                               gripTriggers: triggers));
+                       if(newTrigger!=null && newTrigger!= currentTrigger){
+                         //Todo: send the update to the hand
+                         var newTriggerItem = generalHandler.triggers[newTrigger]!;
+                         generalHandler.updateAction(_actionTitles[index], action.grip, newTriggerItem);
+                       }
+                     }
+                   },
+                   child: Text(generalHandler.currentUser.triggerForAction(_actionTitles[index]).name),
+                 )
+               ],
+              ),
+              onTap: (){
+                //Change the grip
+
+              },
+            ),
         ],
         onReorder: (int oldIndex, int newIndex){
 
         }
-    ),
+    );
   }
 
 }

@@ -84,16 +84,20 @@ class User{
 
   Trigger triggerForAction(String action){
     Trigger? trigger;
+    HandAction? action;
     if(useThumbToggling){
       // use unOpposed action list
-      trigger = unOpposedActions[action]!.trigger;
+      action = unOpposedActions[action];
     }
     else{
       // use combined action list
-      trigger = combinedActions[action]!.trigger;
+      action = combinedActions[action];
     }
-    if(trigger!=null){
-      return trigger;
+    if(action!=null){
+      trigger =  action.trigger;
+      if(trigger!=null){
+        return trigger!;
+      }
     }
     return Trigger(name: "None", bleCommand: "0");
   }
