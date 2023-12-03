@@ -27,14 +27,11 @@ class GripSettings2 extends StatelessWidget{
           const ThumbTapSwitch(),
           //cycle trigger selector
           const CycleTriggerSelector(),
-          const ReorderableExample(),
-          /*
+          const SizedBox(height: 10),
           Expanded(child: generalHandler.useThumbToggling?
                const DoubleTypeList()
               : const SingleTypeList()
           ),
-
-           */
 
         ],
       ),
@@ -87,7 +84,6 @@ class SingleTypeList extends StatelessWidget{
 
   @override
   Widget build (BuildContext context){
-    //TODO: this should be more like a list view thing
     return const ReorderableGripList(listType: "Combined");
   }
 }
@@ -100,7 +96,7 @@ class CycleTriggerSelector extends StatelessWidget{
     var generalHandler = context.watch<GeneralHandler>();
     return Row(
       children: [
-        const Text("Trigger for Cycling"),
+        const Text("Next Grip Trigger"),
         const SizedBox.shrink(),
         ElevatedButton(
             onPressed: () async{
@@ -109,7 +105,7 @@ class CycleTriggerSelector extends StatelessWidget{
                var triggers = generalHandler.triggers;
                final newTrigger = await showDialog(
                    context: context,
-                   builder: (context) => SettingDialog(
+                   builder: (context) => TriggerSettingDialog(
                        action: "Next Grip",
                        currentTrigger: currentTrigger.name,
                        gripTriggers: triggers));
@@ -144,11 +140,13 @@ class DoubleTypeList extends StatelessWidget{
                   Text("Unopposed"),
                 ],
             ),
-            TabBarView(
-                children: [
-                  //TODO: listview with opposed
-                  //TODO: listview with unopposed
-                ],
+            Expanded(
+              child: TabBarView(
+                  children: [
+                    ReorderableGripList(listType: "Opposed"),
+                    ReorderableGripList(listType: "Unopposed"),
+                  ],
+              ),
             ),
           ],
         ));
@@ -172,7 +170,7 @@ class _ReorderableListViewExampleState extends State<ReorderableExample> {
     final Color evenItemColor = colorScheme.primary.withOpacity(0.15);
 
     return ReorderableListView(
-      padding: const EdgeInsets.symmetric(horizontal: 40),
+      //padding: const EdgeInsets.symmetric(horizontal: 10),
       shrinkWrap: true,
       children: <Widget>[
         for (int index = 0; index < _items.length; index += 1)
@@ -180,6 +178,11 @@ class _ReorderableListViewExampleState extends State<ReorderableExample> {
             key: Key('$index'),
             tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
             title: Text('Item ${_items[index]}'),
+            trailing: ReorderableDragStartListener(
+              index: index,
+              child: const Icon(Icons.drag_handle),
+            ),
+            visualDensity: const VisualDensity(horizontal: 4, vertical: 4),
           ),
       ],
       onReorder: (int oldIndex, int newIndex) {
@@ -208,6 +211,7 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
   // if the list view is the last one, it should have a plus and when pressed add another entry
   late String _listType;
   late Map<String, HandAction> _gripList;
+  late Map<String, Grip> allGrips;
   late List<HandAction>_items;
   late List<String> _actionTitles;
 
@@ -241,14 +245,18 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
     switch (_listType){
       case "Opposed":
         _gripList = generalHandler.currentUser.opposedActions;
+        allGrips =  generalHandler.gripsTyped()[0];
       case "Unopposed":
         _gripList = generalHandler.currentUser.unopposedActions;
+        allGrips =  generalHandler.gripsTyped()[1];
       case "Combined":
         _gripList = generalHandler.currentUser.combinedActions;
         _gripList.remove("Next Grip");
+        allGrips =  generalHandler.gripPatterns;
       default:
         _gripList = generalHandler.currentUser.combinedActions;
         _gripList.remove("Next Grip");
+        allGrips =  generalHandler.gripPatterns;
     }
     _items = _gripList.values.toList(); // indeces of this will change
     _actionTitles = _gripList.keys.toList(); //indeces of this will be constant
@@ -274,7 +282,7 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
                        var triggers = generalHandler.triggers;
                        final newTrigger = await showDialog(
                            context: context,
-                           builder: (context) => SettingDialog(
+                           builder: (context) => TriggerSettingDialog(
                                action: _actionTitles[index],
                                currentTrigger: action.triggerName,
                                gripTriggers: triggers));
@@ -289,38 +297,58 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
                  )
                ],
               ),
-              onTap: (){
+              onTap: () async{
                 //Change the grip
+                if(!generalHandler.userAccess[1]){
+                  var currentGrip = action.grip;
 
+                  final newGrip = await showDialog(
+                      context: context,
+                      builder: (context) => GripSettingDialog(
+                          action: _actionTitles[index],
+                          currentGrip: action.gripName,
+                          grips: allGrips));
+                  if(newGrip!=null && newGrip!= currentGrip){
+                    //Todo: send the update to the hand
+                    var newGripItem = generalHandler.triggers[newGrip]!;
+                    generalHandler.updateAction(_actionTitles[index], action.grip, newGripItem);
+                  }
+                }
               },
+              trailing: ReorderableDragStartListener(
+                index: index,
+                child: const Icon(Icons.drag_handle),
+              ),
             ),
         ],
         onReorder: (int oldIndex, int newIndex){
 
-        }
+        },
+
+
     );
   }
 
 }
 
-class SettingDialog extends StatefulWidget{
+class TriggerSettingDialog extends StatefulWidget{
 
   final String action;
   final String currentTrigger;
   final Map<String, Trigger> gripTriggers;
 
-  const SettingDialog({super.key,
+  const TriggerSettingDialog({super.key,
     required this.action,
     required this.currentTrigger,
     required this.gripTriggers,
   });
 
   @override
-  State<SettingDialog> createState() => _SettingsDialog();
+  State<TriggerSettingDialog> createState() => _TriggerSettingsDialog();
 
 }
 
-class _SettingsDialog extends State<SettingDialog>{
+class _TriggerSettingsDialog extends State<TriggerSettingDialog>{
 
   late String _action;
   late String _currentTrigger;
@@ -349,20 +377,6 @@ class _SettingsDialog extends State<SettingDialog>{
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            /*
-            Row( //Row with picture and name of grip
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Image.asset(grips[_gripName]!.assetLocation, fit: BoxFit.contain, height: 120,),
-                ),
-                //const Expanded(child: SizedBox.shrink()),
-                Text(_gripName,),
-              ],
-            ),
-
-             */
             const SizedBox(height: 5,),
             TriggersList(
                 currentTrigger: _currentTrigger,
@@ -448,4 +462,134 @@ class _TriggersList extends State<TriggersList>{
       },
     );
   }
+}
+
+class GripSettingDialog extends StatefulWidget{
+
+  final String action;
+  final String currentGrip;
+  final Map<String, Grip> grips;
+
+  const GripSettingDialog({super.key,
+    required this.action,
+    required this.currentGrip,
+    required this.grips,
+  });
+
+  @override
+  State<GripSettingDialog> createState() => _GripSettingsDialog();
+
+}
+
+class _GripSettingsDialog extends State<GripSettingDialog>{
+
+  late String _action;
+  late String _currentGrip;
+  late Map<String, Grip> _grips;
+
+  @override
+  void initState(){
+    _action = widget.action;
+    _currentGrip = widget.currentGrip;
+    _grips = widget.grips;
+  }
+
+  void changeSelectedGrip(String newGrip){
+    setState(() {
+      _currentGrip = newGrip;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context){
+    var grips = context.watch<GeneralHandler>().gripPatterns;
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 5,),
+            GripList(
+                currentGrip: _currentGrip,
+                handGrips: _grips,
+                changeCurrentGrip: changeSelectedGrip),
+            const SizedBox(height: 5,),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                ElevatedButton(
+                  onPressed: (){
+                    Navigator.pop(context);
+                  },
+                  child: const Text("Cancel"),
+                ),
+                const SizedBox(width: 5,),
+                ElevatedButton(
+                  onPressed: (){
+                    Navigator.pop(context, _currentGrip);
+                  }, //return the new setting
+                  child: const Text("OK"),
+                ),
+              ],
+            )
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class GripList extends StatefulWidget{
+  final String currentGrip;
+  final Map<String, Grip> handGrips;
+  final Function(String newValue) changeCurrentGrip;
+
+
+  const GripList({super.key,
+    required this.currentGrip,
+    required this.handGrips,
+    required this.changeCurrentGrip,
+  });
+  @override
+  State<GripList> createState() => _GripList();
+}
+class _GripList extends State<GripList>{
+
+  late String _currentGrip;
+  late Map<String, Grip> _handGrips;
+
+  @override
+  void initState(){
+    _currentGrip = widget.currentGrip;
+    _handGrips = widget.handGrips;
+  }
+
+  @override
+  Widget build(BuildContext context){
+    return ListView.builder(
+      itemCount: _handGrips.length,
+      shrinkWrap: true,
+      itemBuilder: (BuildContext context, int index){
+        String handGrip = _handGrips.keys.elementAt(index);
+        return ListTile(
+          title: Text(handGrip),
+          selected: handGrip == _currentGrip,
+          //selectedColor: Theme.of(context).cardColor,
+          //tileColor: ,
+          leading: Image.asset(_handGrips[handGrip]!.assetLocation, fit: BoxFit.contain, height: 120,), //this should be the relevant image
+          visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
+          onTap: (){
+            setState(() {
+              widget.changeCurrentGrip(handGrip);
+              _currentGrip = handGrip;
+            });
+          },
+
+        );
+      },
+    );
+  }
+
 }
