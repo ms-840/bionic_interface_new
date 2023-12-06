@@ -60,20 +60,62 @@ class _ThumbTapSwitchState extends State<ThumbTapSwitch>{
   @override
   Widget build(BuildContext context){
     var generalHandler = context.watch<GeneralHandler>();
-    return Row(
-      children: [
-        const Text("Use thumb tap toggling"),
-        const SizedBox.shrink(),
-        Switch(
-          thumbIcon: thumbIcon,
-          value: generalHandler.useThumbToggling,
-          onChanged: (bool value) {
-            setState(() {
-              generalHandler.toggleThumbTapUse();
-            });
-          },
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: Row(
+        children: [
+          const Text("Use thumb tap toggling"),
+          const Spacer(),
+          Switch(
+            thumbIcon: thumbIcon,
+            value: generalHandler.useThumbToggling,
+            onChanged: (bool value) {
+              setState(() {
+                generalHandler.toggleThumbTapUse();
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+}
+
+class CycleTriggerSelector extends StatelessWidget{
+  const CycleTriggerSelector({super.key});
+
+  @override
+  Widget build(BuildContext context){
+    var generalHandler = context.watch<GeneralHandler>();
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: Row(
+        children: [
+          const Text("Next Grip Trigger"),
+          const Spacer(),
+          ElevatedButton(
+              onPressed: () async{
+                if(!generalHandler.userAccess[1]){
+                 var currentTrigger = generalHandler.currentUser.triggerForAction("Next Grip")!;
+                 var triggers = generalHandler.triggers;
+                 final newTrigger = await showDialog(
+                     context: context,
+                     builder: (context) => TriggerSettingDialog(
+                         action: "Next Grip",
+                         currentTrigger: currentTrigger.name,
+                         gripTriggers: triggers));
+                 if(newTrigger!=null && newTrigger!= currentTrigger){
+                    //Todo: send the update to the hand
+                   var newTriggerItem = generalHandler.triggers[newTrigger]!;
+                   generalHandler.updateAction("Next Grip", null, newTriggerItem);
+                 }
+                }
+              },
+              child: Text(generalHandler.currentUser.triggerForAction("Next Grip").name),
+          )
+        ],
+      ),
     );
   }
 
@@ -86,42 +128,6 @@ class SingleTypeList extends StatelessWidget{
   Widget build (BuildContext context){
     return const ReorderableGripList(listType: "Combined");
   }
-}
-
-class CycleTriggerSelector extends StatelessWidget{
-  const CycleTriggerSelector({super.key});
-
-  @override
-  Widget build(BuildContext context){
-    var generalHandler = context.watch<GeneralHandler>();
-    return Row(
-      children: [
-        const Text("Next Grip Trigger"),
-        const SizedBox.shrink(),
-        ElevatedButton(
-            onPressed: () async{
-              if(!generalHandler.userAccess[1]){
-               var currentTrigger = generalHandler.currentUser.triggerForAction("Next Grip")!;
-               var triggers = generalHandler.triggers;
-               final newTrigger = await showDialog(
-                   context: context,
-                   builder: (context) => TriggerSettingDialog(
-                       action: "Next Grip",
-                       currentTrigger: currentTrigger.name,
-                       gripTriggers: triggers));
-               if(newTrigger!=null && newTrigger!= currentTrigger){
-                  //Todo: send the update to the hand
-                 var newTriggerItem = generalHandler.triggers[newTrigger]!;
-                 generalHandler.updateAction("Next Grip", null, newTriggerItem);
-               }
-              }
-            },
-            child: Text(generalHandler.currentUser.triggerForAction("Next Grip").name),
-        )
-      ],
-    );
-  }
-
 }
 
 class DoubleTypeList extends StatelessWidget{
@@ -153,50 +159,6 @@ class DoubleTypeList extends StatelessWidget{
   }
 }
 
-class ReorderableExample extends StatefulWidget {
-  const ReorderableExample({super.key});
-
-  @override
-  State<ReorderableExample> createState() => _ReorderableListViewExampleState();
-}
-
-class _ReorderableListViewExampleState extends State<ReorderableExample> {
-  final List<int> _items = List<int>.generate(50, (int index) => index);
-
-  @override
-  Widget build(BuildContext context) {
-    final ColorScheme colorScheme = Theme.of(context).colorScheme;
-    final Color oddItemColor = colorScheme.primary.withOpacity(0.05);
-    final Color evenItemColor = colorScheme.primary.withOpacity(0.15);
-
-    return ReorderableListView(
-      //padding: const EdgeInsets.symmetric(horizontal: 10),
-      shrinkWrap: true,
-      children: <Widget>[
-        for (int index = 0; index < _items.length; index += 1)
-          ListTile(
-            key: Key('$index'),
-            tileColor: _items[index].isOdd ? oddItemColor : evenItemColor,
-            title: Text('Item ${_items[index]}'),
-            trailing: ReorderableDragStartListener(
-              index: index,
-              child: const Icon(Icons.drag_handle),
-            ),
-            visualDensity: const VisualDensity(horizontal: 4, vertical: 4),
-          ),
-      ],
-      onReorder: (int oldIndex, int newIndex) {
-        setState(() {
-          if (oldIndex < newIndex) {
-            newIndex -= 1;
-          }
-          final int item = _items.removeAt(oldIndex);
-          _items.insert(newIndex, item);
-        });
-      },
-    );
-  }
-}
 
 class ReorderableGripList extends StatefulWidget{
   //this also needs what list it should display
@@ -250,19 +212,21 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
         _gripList = generalHandler.currentUser.unopposedActions;
         allGrips =  generalHandler.gripsTyped()[1];
       case "Combined":
-        _gripList = generalHandler.currentUser.combinedActions;
+        _gripList = Map<String,HandAction>.from(generalHandler.currentUser.combinedActions);
         _gripList.remove("Next Grip");
         allGrips =  generalHandler.gripPatterns;
+        allGrips.remove("None");
       default:
-        _gripList = generalHandler.currentUser.combinedActions;
+        _gripList = Map<String,HandAction>.from(generalHandler.currentUser.combinedActions);
         _gripList.remove("Next Grip");
         allGrips =  generalHandler.gripPatterns;
+        allGrips.remove("None");
     }
     _items = _gripList.values.toList(); // indeces of this will change
     _actionTitles = _gripList.keys.toList(); //indeces of this will be constant
 
     return ReorderableListView(
-        padding: const EdgeInsets.symmetric(horizontal: 40),
+        padding: const EdgeInsets.symmetric(horizontal: 10),
         shrinkWrap: true,
         children: <Widget>[
           for(var (index, action) in _items.indexed)
@@ -270,11 +234,13 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
             ListTile(
               key: Key("$index"), //This as a key is not great, but will keep it for now
               title: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
                children: [
-                 Text(_actionTitles[index]),
-                 const SizedBox.shrink(),
-                 Text(action.gripName),
-                 const SizedBox.shrink(),
+                 Text(_actionTitles[index].substring(_actionTitles[index].length - 1),
+                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                 const SizedBox(width: 15,),
+                 Text(generalHandler.currentUser.gripForAction(_actionTitles[index]).name),
+                 const Spacer(),
                  ElevatedButton(
                    onPressed: () async{
                      if(!generalHandler.userAccess[1]){
@@ -310,8 +276,8 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
                           grips: allGrips));
                   if(newGrip!=null && newGrip!= currentGrip){
                     //Todo: send the update to the hand
-                    var newGripItem = generalHandler.triggers[newGrip]!;
-                    generalHandler.updateAction(_actionTitles[index], action.grip, newGripItem);
+                    var newGripItem = generalHandler.gripPatterns[newGrip]!;
+                    generalHandler.updateAction(_actionTitles[index], newGripItem, action.trigger);
                   }
                 }
               },
@@ -449,7 +415,7 @@ class _TriggersList extends State<TriggersList>{
           selected: gripTrigger == _currentTrigger,
           //selectedColor: Theme.of(context).cardColor,
           //tileColor: ,
-          leading: const Text("image?"), //this should be the relevant image
+         // leading: const Text("image?"), //this should be the relevant image
           visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
           onTap: (){
             setState(() {

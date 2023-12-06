@@ -40,13 +40,13 @@ class HandAction{
     if(grip!=null){
       return grip!.name;
     }
-    return "";
+    return "None";
   }
   String get triggerName{
-    if(grip!=null){
+    if(trigger!=null){
       return trigger!.name;
     }
-    return "";
+    return "None";
   }
 
 }

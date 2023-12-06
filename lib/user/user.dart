@@ -74,41 +74,58 @@ class User{
     _gripSettings = gripSettings;
   }
 
-  void setCombinedAction({required String action, Grip? grip, required Trigger trigger}){
+  void setCombinedAction({required String action, Grip? grip, Trigger? trigger}){
     combinedActions[action] = HandAction(grip: grip, trigger: trigger);
   }
 
-  void setUnOpposedAction({required String action, Grip? grip, required Trigger trigger}){
+  void setUnOpposedAction({required String action, Grip? grip, Trigger? trigger}){
     unOpposedActions[action] = HandAction(grip: grip, trigger: trigger);
   }
 
   Trigger triggerForAction(String action){
     Trigger? trigger;
-    HandAction? action;
     if(useThumbToggling){
       // use unOpposed action list
-      action = unOpposedActions[action];
+      try{
+        trigger = unOpposedActions[action]!.trigger;
+      } catch (e){
+        return Trigger(name: "Error", bleCommand: "0");
+      }
+
     }
     else{
       // use combined action list
-      action = combinedActions[action];
+      try{
+        trigger = combinedActions[action]!.trigger;
+      } catch (e){
+        return Trigger(name: "Error", bleCommand: "0");
+      }
+
     }
-    if(action!=null){
-      trigger =  action.trigger;
       if(trigger!=null){
         return trigger!;
       }
-    }
+
     return Trigger(name: "None", bleCommand: "0");
   }
 
   Grip gripForAction(String action){
     Grip? grip;
     if(useThumbToggling){
-      grip = unOpposedActions[action]!.grip;
+      try{
+        grip = unOpposedActions[action]!.grip;
+      } catch (e){
+        return Grip(name: "Error", type: "", bleCommand: "", assetLocation: "");
+      }
+
     }
     else{
-      grip = combinedActions[action]!.grip;
+      try{
+        grip = combinedActions[action]!.grip;
+      } catch (e){
+        return Grip(name: "Error", type: "", bleCommand: "", assetLocation: "");
+      }
+
     }
     if(grip!=null){
       return grip;

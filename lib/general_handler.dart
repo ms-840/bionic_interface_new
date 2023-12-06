@@ -34,7 +34,7 @@ class GeneralHandler extends ChangeNotifier{
     for (var grip in gripPatterns.keys){
       if(gripPatterns[grip]!.type == "opposed"){
         opposedGrips[grip] = gripPatterns[grip]!;
-      } else{
+      } else if(gripPatterns[grip]!.type == "unopposed"){
         unopposedGrips[grip] = gripPatterns[grip]!;
       }
     }
@@ -76,13 +76,14 @@ class GeneralHandler extends ChangeNotifier{
     notifyListeners();
   }
 
-  void updateAction(String action, Grip? grip, Trigger trigger){
+  void updateAction(String action, Grip? grip, Trigger? trigger){
     if(useThumbToggling){
       currentUser.setUnOpposedAction(action: action, grip: grip, trigger: trigger);
     }
     else {
       currentUser.setCombinedAction(action: action, grip: grip, trigger: trigger);
     }
+
     notifyListeners();
   }
 
