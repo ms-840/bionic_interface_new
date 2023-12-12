@@ -10,11 +10,14 @@ class User{
 
   late final String _userName;
   String name = ""; //not sure if this is necessary
+
+  //todo: need to change access types to clinician, editor, viewer
   bool _adminAccess = false;
   bool _childLock = false; //not sure yet if this is necessary
 
 
   Map<Grip,Trigger> _gripSettings = {}; //Format gripName:ruleName
+
 
   Map<String, HandAction> combinedActions = {
     "Next Grip" : HandAction(),
@@ -23,6 +26,7 @@ class User{
     "Grip 3" : HandAction(),
   };
 
+  //TODO: rethink how i structure this for new settings page
   Map<String, HandAction> unOpposedActions = {
     "Next Grip" : HandAction(),
     "Opposed Grip 1" : HandAction(),

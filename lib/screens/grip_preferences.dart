@@ -3,6 +3,8 @@ import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:bionic_interface/general_handler.dart';
 import 'package:bionic_interface/grip_trigger_action.dart';
+import 'grip_preferences_auxiliary/grip_dialog.dart';
+import 'grip_preferences_auxiliary/trigger_dialog.dart';
 
 
 class GripSettings2 extends StatelessWidget{
@@ -126,7 +128,26 @@ class SingleTypeList extends StatelessWidget{
 
   @override
   Widget build (BuildContext context){
-    return const ReorderableGripList(listType: "Combined");
+    return const DefaultTabController(
+        length: 2,
+        child:  Column(
+          children: [
+            TabBar(
+              tabs: [
+                Text("Grips"),
+                Text("Direct"),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                children: [
+                  ReorderableGripList(listType: "Combined"),
+                  DirectGripList(),
+                ],
+              ),
+            ),
+          ],
+        ));
   }
 }
 
@@ -135,15 +156,15 @@ class DoubleTypeList extends StatelessWidget{
 
   @override
   Widget build (BuildContext context){
-    //TODO: this should be more like a list view thing
     return const DefaultTabController(
-        length: 2,
+        length: 3,
         child:  Column(
           children: [
              TabBar(
                 tabs: [
                   Text("Opposed"),
                   Text("Unopposed"),
+                  Text("Direct"),
                 ],
             ),
             Expanded(
@@ -151,6 +172,7 @@ class DoubleTypeList extends StatelessWidget{
                   children: [
                     ReorderableGripList(listType: "Opposed"),
                     ReorderableGripList(listType: "Unopposed"),
+                    DirectGripList(),
                   ],
               ),
             ),
@@ -214,348 +236,140 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
       case "Combined":
         _gripList = Map<String,HandAction>.from(generalHandler.currentUser.combinedActions);
         _gripList.remove("Next Grip");
-        allGrips =  generalHandler.gripPatterns;
+        allGrips = Map<String,Grip>.from(generalHandler.gripPatterns);
         allGrips.remove("None");
       default:
         _gripList = Map<String,HandAction>.from(generalHandler.currentUser.combinedActions);
         _gripList.remove("Next Grip");
-        allGrips =  generalHandler.gripPatterns;
+        allGrips =  Map<String,Grip>.from(generalHandler.gripPatterns);
         allGrips.remove("None");
     }
     _items = _gripList.values.toList(); // indeces of this will change
     _actionTitles = _gripList.keys.toList(); //indeces of this will be constant
 
-    return ReorderableListView(
-        padding: const EdgeInsets.symmetric(horizontal: 10),
-        shrinkWrap: true,
-        children: <Widget>[
-          for(var (index, action) in _items.indexed)
-            //The list tiles should not be the grip list itself, but rather a list of the grips inside?
-            ListTile(
-              key: Key("$index"), //This as a key is not great, but will keep it for now
-              title: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-               children: [
-                 Text(_actionTitles[index].substring(_actionTitles[index].length - 1),
-                   style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
-                 const SizedBox(width: 15,),
-                 Text(generalHandler.currentUser.gripForAction(_actionTitles[index]).name),
-                 const Spacer(),
-                 ElevatedButton(
-                   onPressed: () async{
-                     if(!generalHandler.userAccess[1]){
-                       var currentTrigger = action.trigger;
-                       var triggers = generalHandler.triggers;
-                       final newTrigger = await showDialog(
-                           context: context,
-                           builder: (context) => TriggerSettingDialog(
-                               action: _actionTitles[index],
-                               currentTrigger: action.triggerName,
-                               gripTriggers: triggers));
-                       if(newTrigger!=null && newTrigger!= currentTrigger){
-                         //Todo: send the update to the hand
-                         var newTriggerItem = generalHandler.triggers[newTrigger]!;
-                         generalHandler.updateAction(_actionTitles[index], action.grip, newTriggerItem);
-                       }
-                     }
-                   },
-                   child: Text(generalHandler.currentUser.triggerForAction(_actionTitles[index]).name),
-                 )
-               ],
-              ),
-              onTap: () async{
-                //Change the grip
-                if(!generalHandler.userAccess[1]){
-                  var currentGrip = action.grip;
-
-                  final newGrip = await showDialog(
-                      context: context,
-                      builder: (context) => GripSettingDialog(
-                          action: _actionTitles[index],
-                          currentGrip: action.gripName,
-                          grips: allGrips));
-                  if(newGrip!=null && newGrip!= currentGrip){
-                    //Todo: send the update to the hand
-                    var newGripItem = generalHandler.gripPatterns[newGrip]!;
-                    generalHandler.updateAction(_actionTitles[index], newGripItem, action.trigger);
+    return SingleChildScrollView(
+      scrollDirection: Axis.vertical,
+      child: Column(
+        children: [
+          ReorderableListView(
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              shrinkWrap: true,
+              children: <Widget>[
+                for(var (index, action) in _items.indexed)
+                  //The list tiles should not be the grip list itself, but rather a list of the grips inside?
+                  ListTile(
+                    key: Key("$index"), //This as a key is not great, but will keep it for now
+                    title: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                     children: [
+                       Text(_actionTitles[index].substring(_actionTitles[index].length - 1),
+                         style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+                       const SizedBox(width: 20,),
+                       Image.asset(generalHandler.gripPatterns[generalHandler.currentUser.gripForAction(_actionTitles[index]).name]!.assetLocation,
+                         fit: BoxFit.contain,
+                         height: 80,),
+                       Expanded(
+                         child: SingleChildScrollView(
+                           scrollDirection: Axis.horizontal,
+                             child: Text(generalHandler.currentUser.gripForAction(_actionTitles[index]).name)),
+                       ),
+                       /*
+                       const Spacer(),
+                       ElevatedButton(
+                         onPressed: () async{
+                           if(!generalHandler.userAccess[1]){
+                             var currentTrigger = action.trigger;
+                             var triggers = generalHandler.triggers;
+                             final newTrigger = await showDialog(
+                                 context: context,
+                                 builder: (context) => TriggerSettingDialog(
+                                     action: _actionTitles[index],
+                                     currentTrigger: action.triggerName,
+                                     gripTriggers: triggers));
+                             if(newTrigger!=null && newTrigger!= currentTrigger){
+                               //Todo: send the update to the hand
+                               var newTriggerItem = generalHandler.triggers[newTrigger]!;
+                               generalHandler.updateAction(_actionTitles[index], action.grip, newTriggerItem);
+                             }
+                           }
+                         },
+                         child: Text(generalHandler.currentUser.triggerForAction(_actionTitles[index]).name),
+                       )
+                       */
+                     ],
+                    ),
+                    onTap: () async{
+                      //Change the grip
+                      if(!generalHandler.userAccess[1]){
+                        var currentGrip = action.grip;
+          
+                        final newGrip = await showDialog(
+                            context: context,
+                            builder: (context) => GripSettingDialog(
+                                action: _actionTitles[index],
+                                currentGrip: action.gripName,
+                                grips: allGrips));
+                        if(newGrip!=null && newGrip!= currentGrip){
+                          //Todo: send the update to the hand
+                          var newGripItem = generalHandler.gripPatterns[newGrip]!;
+                          generalHandler.updateAction(_actionTitles[index], newGripItem, action.trigger);
+                        }
+                      }
+                    },
+                    trailing: ReorderableDragStartListener(
+                      index: index,
+                      child: const Icon(Icons.drag_handle),
+                    ),
+                  ),
+              ],
+              onReorder: (int oldIndex, int newIndex){
+                /* how this needs to work:
+                  when reordered, each of the Hand actions needs to to be re-attributed to the action titles
+                  so:
+                  1. figure out the indeces of the old hand action tiles -> that is _items
+                  2. reorder the tiles
+                  3. reattribute
+                 */
+                setState(() {
+                  //Reorder the tiles
+                  if (oldIndex < newIndex) {
+                    newIndex -= 1;
                   }
+                  final HandAction item = _items.removeAt(oldIndex);
+                  _items.insert(newIndex, item);
+                });
+          
+                //reattribute the hand actions to the actions
+                for(var (index, action) in _actionTitles.indexed){
+                  var newGrip = _items[index].grip;
+                  var newTrigger = _items[index].trigger;
+                  generalHandler.updateAction(action, newGrip, newTrigger);
                 }
               },
-              trailing: ReorderableDragStartListener(
-                index: index,
-                child: const Icon(Icons.drag_handle),
-              ),
-            ),
+          
+          
+          ),
         ],
-        onReorder: (int oldIndex, int newIndex){
-
-        },
-
-
-    );
-  }
-
-}
-
-class TriggerSettingDialog extends StatefulWidget{
-
-  final String action;
-  final String currentTrigger;
-  final Map<String, Trigger> gripTriggers;
-
-  const TriggerSettingDialog({super.key,
-    required this.action,
-    required this.currentTrigger,
-    required this.gripTriggers,
-  });
-
-  @override
-  State<TriggerSettingDialog> createState() => _TriggerSettingsDialog();
-
-}
-
-class _TriggerSettingsDialog extends State<TriggerSettingDialog>{
-
-  late String _action;
-  late String _currentTrigger;
-  late Map<String, Trigger> _gripTriggers;
-
-  @override
-  void initState(){
-    _action = widget.action;
-    _currentTrigger = widget.currentTrigger;
-    _gripTriggers = widget.gripTriggers;
-  }
-
-  void changeSelectedTrigger(String newTrigger){
-    setState(() {
-      _currentTrigger = newTrigger;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context){
-    var grips = context.watch<GeneralHandler>().gripPatterns;
-    return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 5,),
-            TriggersList(
-                currentTrigger: _currentTrigger,
-                gripTriggers: _gripTriggers,
-                changeCurrentTrigger: changeSelectedTrigger),
-            const SizedBox(height: 5,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: (){
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Cancel"),
-                ),
-                const SizedBox(width: 5,),
-                ElevatedButton(
-                  onPressed: (){
-                    Navigator.pop(context, _currentTrigger);
-                  }, //return the new setting
-                  child: const Text("OK"),
-                ),
-              ],
-            )
-          ],
-        ),
       ),
     );
   }
-}
-
-class TriggersList extends StatefulWidget{
-
-  final String currentTrigger;
-  final Map<String, Trigger> gripTriggers;
-  final Function(String newValue) changeCurrentTrigger;
-
-
-  const TriggersList({super.key,
-    required this.currentTrigger,
-    required this.gripTriggers,
-    required this.changeCurrentTrigger,
-  });
-
-  @override
-  State<TriggersList> createState() => _TriggersList();
-}
-
-class _TriggersList extends State<TriggersList>{
-
-  late String _currentTrigger;
-  late Map<String, Trigger> _gripTriggers;
-
-  @override
-  void initState(){
-    _currentTrigger = widget.currentTrigger;
-    _gripTriggers = widget.gripTriggers;
-  }
-
-  //TODO: ideally this should point out what it is currently used for? and maybe not let you set it? or remove the binding to the other
-  @override
-  Widget build(BuildContext context){
-    return ListView.builder(
-      itemCount: _gripTriggers.length,
-      shrinkWrap: true,
-      itemBuilder: (BuildContext context, int index){
-        String gripTrigger = _gripTriggers.keys.elementAt(index);
-        return ListTile(
-          title: Text(gripTrigger),
-          selected: gripTrigger == _currentTrigger,
-          //selectedColor: Theme.of(context).cardColor,
-          //tileColor: ,
-         // leading: const Text("image?"), //this should be the relevant image
-          visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
-          onTap: (){
-            setState(() {
-              widget.changeCurrentTrigger(gripTrigger);
-              _currentTrigger = gripTrigger;
-            });
-          },
-
-        );
-      },
-    );
-  }
-}
-
-class GripSettingDialog extends StatefulWidget{
-
-  final String action;
-  final String currentGrip;
-  final Map<String, Grip> grips;
-
-  const GripSettingDialog({super.key,
-    required this.action,
-    required this.currentGrip,
-    required this.grips,
-  });
-
-  @override
-  State<GripSettingDialog> createState() => _GripSettingsDialog();
 
 }
 
-class _GripSettingsDialog extends State<GripSettingDialog>{
+class DirectGripList extends StatefulWidget{
+  const DirectGripList({super.key});
 
-  late String _action;
-  late String _currentGrip;
-  late Map<String, Grip> _grips;
 
   @override
-  void initState(){
-    _action = widget.action;
-    _currentGrip = widget.currentGrip;
-    _grips = widget.grips;
-  }
+  State<DirectGripList> createState() => _DirectGripListState();
+}
 
-  void changeSelectedGrip(String newGrip){
-    setState(() {
-      _currentGrip = newGrip;
-    });
-  }
+class _DirectGripListState extends State<DirectGripList>{
 
   @override
   Widget build(BuildContext context){
-    var grips = context.watch<GeneralHandler>().gripPatterns;
-    return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 5,),
-            GripList(
-                currentGrip: _currentGrip,
-                handGrips: _grips,
-                changeCurrentGrip: changeSelectedGrip),
-            const SizedBox(height: 5,),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                ElevatedButton(
-                  onPressed: (){
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Cancel"),
-                ),
-                const SizedBox(width: 5,),
-                ElevatedButton(
-                  onPressed: (){
-                    Navigator.pop(context, _currentGrip);
-                  }, //return the new setting
-                  child: const Text("OK"),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class GripList extends StatefulWidget{
-  final String currentGrip;
-  final Map<String, Grip> handGrips;
-  final Function(String newValue) changeCurrentGrip;
-
-
-  const GripList({super.key,
-    required this.currentGrip,
-    required this.handGrips,
-    required this.changeCurrentGrip,
-  });
-  @override
-  State<GripList> createState() => _GripList();
-}
-class _GripList extends State<GripList>{
-
-  late String _currentGrip;
-  late Map<String, Grip> _handGrips;
-
-  @override
-  void initState(){
-    _currentGrip = widget.currentGrip;
-    _handGrips = widget.handGrips;
-  }
-
-  @override
-  Widget build(BuildContext context){
-    return ListView.builder(
-      itemCount: _handGrips.length,
-      shrinkWrap: true,
-      itemBuilder: (BuildContext context, int index){
-        String handGrip = _handGrips.keys.elementAt(index);
-        return ListTile(
-          title: Text(handGrip),
-          selected: handGrip == _currentGrip,
-          //selectedColor: Theme.of(context).cardColor,
-          //tileColor: ,
-          leading: Image.asset(_handGrips[handGrip]!.assetLocation, fit: BoxFit.contain, height: 120,), //this should be the relevant image
-          visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
-          onTap: (){
-            setState(() {
-              widget.changeCurrentGrip(handGrip);
-              _currentGrip = handGrip;
-            });
-          },
-
-        );
-      },
-    );
+    return const Text("This page is coming soon");
   }
 
 }
+
