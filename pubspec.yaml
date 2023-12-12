@@ -95,16 +95,17 @@ flutter:
 
   assets:
     - assets/images/logo.png
-    - assets/images/grips/index_point.jpg
-    - assets/images/grips/precision_open.jpg
-    - assets/images/grips/relaxed.jpg
-    - assets/images/grips/power_grip.jpg
-    - assets/images/grips/hook.jpg
-    - assets/images/grips/lateral_key.jpg
-    - assets/images/grips/tripod.jpg
-    - assets/images/grips/mouse.jpg
-    - assets/images/grips/active_index.jpg
-    - assets/images/grips/trigger.jpg
+    - assets/images/logo_grey.png
+    - assets/images/grips/index_point.png
+    - assets/images/grips/precision_open.png
+    - assets/images/grips/relaxed.png
+    - assets/images/grips/power_grip.png
+    - assets/images/grips/hook.png
+    - assets/images/grips/lateral_key.png
+    - assets/images/grips/tripod.png
+    - assets/images/grips/mouse.png
+    - assets/images/grips/active_index.png
+    - assets/images/grips/trigger.png
 
 
   # An image asset can refer to one or more resolution-specific "variants", see

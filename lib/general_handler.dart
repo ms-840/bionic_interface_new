@@ -14,17 +14,17 @@ class GeneralHandler extends ChangeNotifier{
 
   //Keys and related ble codes
   final gripPatterns = {
-    "None":           Grip(name: "None",           type: "",          bleCommand: "",  assetLocation: ""),
-    "Index Point":    Grip(name: "Index Point",    type: "unopposed", bleCommand: "1", assetLocation: "assets/images/grips/index_point.jpg"),
-    "Precision Open": Grip(name: "Precision Open", type: "opposed",   bleCommand: "2", assetLocation: "assets/images/grips/precision_open.jpg"),
-    "Relaxed":        Grip(name: "Relaxed",        type: "unopposed", bleCommand: "3", assetLocation: "assets/images/grips/relaxed.jpg"),
-    "Power Grip":     Grip(name: "Power Grip",     type: "opposed",   bleCommand: "4", assetLocation: "assets/images/grips/power_grip.jpg"),
-    "Hook":           Grip(name: "Hook",           type: "unopposed", bleCommand: "5", assetLocation: "assets/images/grips/hook.jpg"),
-    "Lateral":        Grip(name: "Lateral/Key",    type: "unopposed", bleCommand: "6", assetLocation: "assets/images/grips/lateral_key.jpg"),
-    "Tripod":         Grip(name: "Tripod",         type: "opposed",   bleCommand: "7", assetLocation: "assets/images/grips/tripod.jpg"),
-    "Mouse":          Grip(name: "Mouse",          type: "unopposed", bleCommand: "8", assetLocation: "assets/images/grips/mouse.jpg"),
-    "Active Index":   Grip(name: "Active Index",   type: "unopposed", bleCommand: "9", assetLocation: "assets/images/grips/active_index.jpg"),
-    "Trigger":        Grip(name: "Trigger",        type: "opposed",   bleCommand: "0", assetLocation: "assets/images/grips/trigger.jpg"),
+    "None":           Grip(name: "None",           type: "",          bleCommand: "",  assetLocation: "assets/images/logo_grey.png"),
+    "Index Point":    Grip(name: "Index Point",    type: "unopposed", bleCommand: "1", assetLocation: "assets/images/grips/index_point.png"),
+    "Precision Open": Grip(name: "Precision Open", type: "opposed",   bleCommand: "2", assetLocation: "assets/images/grips/precision_open.png"),
+    "Relaxed":        Grip(name: "Relaxed",        type: "unopposed", bleCommand: "3", assetLocation: "assets/images/grips/relaxed.png"),
+    "Power Grip":     Grip(name: "Power Grip",     type: "opposed",   bleCommand: "4", assetLocation: "assets/images/grips/power_grip.png"),
+    "Hook":           Grip(name: "Hook",           type: "unopposed", bleCommand: "5", assetLocation: "assets/images/grips/hook.png"),
+    "Key":            Grip(name: "Key",            type: "unopposed", bleCommand: "6", assetLocation: "assets/images/grips/lateral_key.png"),
+    "Tripod":         Grip(name: "Tripod",         type: "opposed",   bleCommand: "7", assetLocation: "assets/images/grips/tripod.png"),
+    "Mouse":          Grip(name: "Mouse",          type: "unopposed", bleCommand: "8", assetLocation: "assets/images/grips/mouse.png"),
+    "Active Index":   Grip(name: "Active Index",   type: "unopposed", bleCommand: "9", assetLocation: "assets/images/grips/active_index.png"),
+    "Trigger":        Grip(name: "Trigger",        type: "opposed",   bleCommand: "0", assetLocation: "assets/images/grips/trigger.png"),
   };
 
   List<Map<String,Grip>> gripsTyped(){
