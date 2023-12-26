@@ -49,13 +49,20 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 5,),
-            GripList(
-                currentGrip: _currentGrip,
-                handGrips: _grips,
-                changeCurrentGrip: changeSelectedGrip),
-            const SizedBox(height: 5,),
+          children: [ 
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                children: [
+                  const SizedBox(height: 5,),
+                  GripList(
+                      currentGrip: _currentGrip,
+                      handGrips: _grips,
+                      changeCurrentGrip: changeSelectedGrip),
+                  const SizedBox(height: 5,),
+                  ]),
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -109,7 +116,8 @@ class _GripList extends State<GripList>{
   @override
   Widget build(BuildContext context){
     return ListView.builder(
-      scrollDirection: Axis.vertical,
+      physics: const NeverScrollableScrollPhysics(),
+      //scrollDirection: Axis.vertical,
       itemCount: _handGrips.length,
       shrinkWrap: true,
       itemBuilder: (BuildContext context, int index){

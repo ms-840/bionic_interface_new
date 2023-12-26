@@ -3,6 +3,7 @@
 // if no specific user is logged in, a generic/anonymous user profile should be used
 // im also not sure yet how to best make the user log in
 import 'package:bionic_interface/grip_trigger_action.dart';
+import 'dart:math';
 
 class User{
   //constructor
@@ -17,24 +18,28 @@ class User{
 
 
   Map<Grip,Trigger> _gripSettings = {}; //Format gripName:ruleName
-
+  Map<String, HandAction> _triggerSettings = {}; //to be used to actually assign the grips/actions to triggers
 
   Map<String, HandAction> combinedActions = {
     "Next Grip" : HandAction(),
-    "Grip 1" : HandAction(),
-    "Grip 2" : HandAction(),
-    "Grip 3" : HandAction(),
+    "Position 1" : HandAction(),
   };
 
   //TODO: rethink how i structure this for new settings page
   Map<String, HandAction> unOpposedActions = {
     "Next Grip" : HandAction(),
-    "Opposed Grip 1" : HandAction(),
-    "Opposed Grip 2" : HandAction(),
-    "Opposed Grip 3" : HandAction(),
-    "Unopposed Grip 1" : HandAction(),
-    "Unopposed Grip 2" : HandAction(),
-    "Unopposed Grip 3" : HandAction(),
+    "Opposed Position 1" : HandAction(
+      grip: Grip(name: "Power Grip",     type: "opposed",   bleCommand: "4", assetLocation: "assets/images/grips/power_grip.png")
+    ),
+    "Opposed Position 2" : HandAction(
+        grip: Grip(name: "Tripod",         type: "opposed",   bleCommand: "7", assetLocation: "assets/images/grips/tripod.png")
+    ),
+    "Unopposed Position 1" : HandAction(
+      grip: Grip(name: "Index Point",    type: "unopposed", bleCommand: "1", assetLocation: "assets/images/grips/index_point.png"),
+    ),
+    "Unopposed Position 2" : HandAction(
+      grip: Grip(name: "Key",            type: "unopposed", bleCommand: "6", assetLocation: "assets/images/grips/lateral_key.png"),
+    ),
   };
 
   bool useThumbToggling = true;
@@ -169,7 +174,140 @@ class User{
     return unopposed;
   }
 
+  void addOpposedAction(){
+    //this needs to find the highest number currently and add one one higher
+    List<int> numberValues = [];
+    for(var key in opposedActions.keys){
+      try{
+        var number = int.parse(key.split(" ")[2]);
+        numberValues.add(number);
+      }
+      finally{
+      }
+    }
+    var newNumber = numberValues.reduce(max) + 1;
+    unOpposedActions["Opposed Position $newNumber"] = HandAction();
+  }
+  void addUnopposedAction(){
+    List<int> numberValues = [];
+    for(var key in unopposedActions.keys){
+      try{
+        var number = int.parse(key.split(" ")[2]);
+        numberValues.add(number);
+      }
+      finally{
+      }
+    }
+    var newNumber = numberValues.reduce(max) + 1;
+    unOpposedActions["Unopposed Position $newNumber"] = HandAction();
+  }
+  void addCombinedAction(){
+    List<int> numberValues = [];
+    for(var key in combinedActions.keys){
+      try{
+        if(key == "Next Grip"){
+          continue;
+        }
+        var number = int.parse(key.split(" ")[1]);
+        numberValues.add(number);
+      }
+      finally{
+      }
+    }
+    var newNumber = numberValues.reduce(max) + 1;
+    combinedActions["Position $newNumber"] = HandAction();
+  }
 
+  void removeOpposedAction(String actionName){
+    //identify the removed action
+    // then remove the last action
+    var removeActionNumber = int.parse(actionName.split(" ")[2]);
+    List<int> numberValues = [];
+    for(var key in opposedActions.keys){
+      try{
+        var number = int.parse(key.split(" ")[2]);
+        numberValues.add(number);
+      }
+      finally{
+      }
+    }
+    var currentMax = numberValues.reduce(max);
+    var removeActionIndex = numberValues.indexOf(removeActionNumber);
+    if(currentMax == 1){
+      //If only one thing is left, it should not be removed. There should be at least one thing left
+      return;
+    }
+    else if (removeActionNumber < currentMax){
+      // if the number in the action is lower than the highest number, move the other actions up
+      var keys = opposedActions.keys.toList();
+      var values = opposedActions.values.toList();
+      for(var i = removeActionIndex; i < keys.length - 1; i++) {
+        // reassign the values to move them up
+        unOpposedActions[keys[i]] = values[i + 1];
+      }
+    }
+    unOpposedActions.remove("Opposed Position $currentMax");
+  }
+  void removeUnopposedAction(String actionName){
+    //identify the removed action
+    // then remove the last action
+    var removeActionNumber = int.parse(actionName.split(" ")[2]);
+    List<int> numberValues = [];
+    for(var key in unopposedActions.keys){
+      try{
+        var number = int.parse(key.split(" ")[2]);
+        numberValues.add(number);
+      }
+      finally{
+      }
+    }
+    var currentMax = numberValues.reduce(max);
+    var removeActionIndex = numberValues.indexOf(removeActionNumber);
+    if(currentMax == 1){
+      //If only one thing is left, it should not be removed. There should be at least one thing left
+      return;
+    }
+    else if (removeActionNumber < currentMax){
+      // if the number in the action is lower than the highest number, move the other actions up
+      var keys = unopposedActions.keys.toList();
+      var values = unopposedActions.values.toList();
+      for(var i = removeActionIndex; i < keys.length - 1; i++) {
+        // reassign the values to move them up
+        unOpposedActions[keys[i]] = values[i + 1];
+      }
+    }
+    unOpposedActions.remove("Unopposed Position $currentMax");
+  }
+  void removeCombinedAction(String actionName){
+    //identify the removed action
+    // then remove the last action
+    var removeActionNumber = int.parse(actionName.split(" ")[2]);
+    List<int> numberValues = [];
+    for(var key in combinedActions.keys){
+      try{
+        var number = int.parse(key.split(" ")[2]);
+        numberValues.add(number);
+      }
+      finally{
+      }
+    }
+    var currentMax = numberValues.reduce(max);
+    var removeActionIndex = numberValues.indexOf(removeActionNumber);
+    if(currentMax == 1){
+      //If only one thing is left, it should not be removed. There should be at least one thing left
+      return;
+    }
+    else if (removeActionNumber < currentMax){
+      // if the number in the action is lower than the highest number, move the other actions up
+      var keys = combinedActions.keys.toList();
+      var values = combinedActions.values.toList();
+      for(var i = removeActionIndex; i < keys.length - 1; i++) {
+        // reassign the values to move them up
+        combinedActions[keys[i]] = values[i + 1];
+      }
+    }
+    combinedActions.remove("Position $currentMax");
+  }
 
 }
 

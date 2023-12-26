@@ -99,7 +99,7 @@ class CycleTriggerSelector extends StatelessWidget{
           ElevatedButton(
               onPressed: () async{
                 if(!generalHandler.userAccess[1]){
-                 var currentTrigger = generalHandler.currentUser.triggerForAction("Next Grip")!;
+                 var currentTrigger = generalHandler.currentUser.triggerForAction("Next Grip");
                  var triggers = generalHandler.triggers;
                  final newTrigger = await showDialog(
                      context: context,
@@ -229,21 +229,22 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
     switch (_listType){
       case "Opposed":
         _gripList = generalHandler.currentUser.opposedActions;
-        allGrips =  generalHandler.gripsTyped()[0];
+        //allGrips =  generalHandler.gripsTyped()[0];
       case "Unopposed":
         _gripList = generalHandler.currentUser.unopposedActions;
-        allGrips =  generalHandler.gripsTyped()[1];
+        //allGrips =  generalHandler.gripsTyped()[1];
       case "Combined":
         _gripList = Map<String,HandAction>.from(generalHandler.currentUser.combinedActions);
         _gripList.remove("Next Grip");
-        allGrips = Map<String,Grip>.from(generalHandler.gripPatterns);
-        allGrips.remove("None");
+        //allGrips = Map<String,Grip>.from(generalHandler.gripPatterns);
+        //allGrips.remove("None");
       default:
         _gripList = Map<String,HandAction>.from(generalHandler.currentUser.combinedActions);
         _gripList.remove("Next Grip");
-        allGrips =  Map<String,Grip>.from(generalHandler.gripPatterns);
-        allGrips.remove("None");
     }
+    allGrips =  Map<String,Grip>.from(generalHandler.getUnusedGrips(_listType));
+    print(allGrips.keys.toList());
+    //allGrips.remove("None");
     _items = _gripList.values.toList(); // indeces of this will change
     _actionTitles = _gripList.keys.toList(); //indeces of this will be constant
 
@@ -338,7 +339,7 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
                   final HandAction item = _items.removeAt(oldIndex);
                   _items.insert(newIndex, item);
                 });
-          
+
                 //reattribute the hand actions to the actions
                 for(var (index, action) in _actionTitles.indexed){
                   var newGrip = _items[index].grip;
@@ -347,9 +348,14 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
                 }
               },
           
-          
           ),
+          ElevatedButton(
+              onPressed: (){
+                generalHandler.addGripsToUserList(_listType);
+              },
+              child: const Icon(Icons.add)),
         ],
+
       ),
     );
   }
@@ -368,6 +374,7 @@ class _DirectGripListState extends State<DirectGripList>{
 
   @override
   Widget build(BuildContext context){
+
     return const Text("This page is coming soon");
   }
 

@@ -52,7 +52,54 @@ class GeneralHandler extends ChangeNotifier{
     //"Thumb Tap":  Trigger(name: "Thumb Tap",   bleCommand: "6"), // not changeable by user
   }; //include a key for none
 
+  void getUnusedTriggers(){
 
+  }
+
+  Map<String, Grip> getUnusedGrips(String gripType){
+    """ gripType can be:
+        - 'Opposed'
+        - 'Unopposed'
+        - 'Combined'
+    """;
+    late Map<String, Grip> unusedGrips;
+    switch(gripType){
+      case("Opposed"):
+        unusedGrips = gripsTyped()[0];
+        for(var gripItem in currentUser.opposedActions.values){
+          if(unusedGrips.containsKey(gripItem.gripName)){
+            unusedGrips.remove(gripItem.gripName);
+          }
+        }
+      case("Unopposed"):
+        unusedGrips = gripsTyped()[1];
+        for(var gripItem in currentUser.unopposedActions.values){
+          if(unusedGrips.containsKey(gripItem.gripName)){
+            unusedGrips.remove(gripItem.gripName);
+          }
+        }
+      case("Combined"):
+        unusedGrips = Map<String,Grip>.from(gripPatterns);
+        for(var gripItem in currentUser.combinedActions.values){
+          if(unusedGrips.containsKey(gripItem.gripName)){
+            unusedGrips.remove(gripItem.gripName);
+          }
+        }
+    }
+    return unusedGrips;
+  }
+
+  void addGripsToUserList(String type){
+    switch(type){
+      case "Opposed":
+        currentUser.addOpposedAction();
+      case "Unopposed":
+        currentUser.addUnopposedAction();
+      case "Combined":
+        currentUser.addCombinedAction();
+    }
+    notifyListeners();
+  }
 
   User currentUser = AnonymousUser();
 

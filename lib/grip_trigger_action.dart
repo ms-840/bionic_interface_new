@@ -31,6 +31,7 @@ class Trigger{
 }
 
 class HandAction{
+  //This is somewhat multi purpose now, also to hold grips and/or triggers without having to be paired up necessarily
   late Grip? grip;
   late Trigger? trigger;
 
