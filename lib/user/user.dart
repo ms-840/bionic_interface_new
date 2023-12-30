@@ -18,16 +18,15 @@ class User{
 
 
   Map<Grip,Trigger> _gripSettings = {}; //Format gripName:ruleName
-  Map<String, HandAction> _triggerSettings = {}; //to be used to actually assign the grips/actions to triggers
 
   Map<String, HandAction> combinedActions = {
-    "Next Grip" : HandAction(),
+    //"Next Grip" : HandAction(),
     "Position 1" : HandAction(),
   };
 
   //TODO: rethink how i structure this for new settings page
   Map<String, HandAction> unOpposedActions = {
-    "Next Grip" : HandAction(),
+    //"Next Grip" : HandAction(),
     "Opposed Position 1" : HandAction(
       grip: Grip(name: "Power Grip",     type: "opposed",   bleCommand: "4", assetLocation: "assets/images/grips/power_grip.png")
     ),
@@ -40,6 +39,15 @@ class User{
     "Unopposed Position 2" : HandAction(
       grip: Grip(name: "Key",            type: "unopposed", bleCommand: "6", assetLocation: "assets/images/grips/lateral_key.png"),
     ),
+  };
+
+  Map<String, HandAction> directActions = { //to be used to actually assign the grips/actions to triggers
+    //This should contain an entry for each of the triggers
+    //I am not sure what would be best for the next grip action though, since i cant have a grip thats called next grip?
+    "Open Open":    HandAction(trigger: Trigger(name: "Open Open",   bleCommand: "1", timeSetting: 0.2), grip: Grip(name: "Next Grip", type: "", bleCommand: "", assetLocation: "assets/images/logo_grey.png")),
+    "Hold Open":    HandAction(trigger: Trigger(name: "Hold Open",   bleCommand: "2", timeSetting: 0.2)),
+    "Co Con":       HandAction(trigger: Trigger(name: "Co Con",      bleCommand: "3", timeSetting: 0.25)),
+    "Button Press": HandAction(trigger: Trigger(name: "Button Press",bleCommand: "4")),
   };
 
   bool useThumbToggling = true;
@@ -82,6 +90,8 @@ class User{
   set importGripSettings (Map<Grip,Trigger> gripSettings){
     _gripSettings = gripSettings;
   }
+
+
 
   void setCombinedAction({required String action, Grip? grip, Trigger? trigger}){
     combinedActions[action] = HandAction(grip: grip, trigger: trigger);
@@ -308,6 +318,11 @@ class User{
     }
     combinedActions.remove("Position $currentMax");
   }
+
+  void setDirectAction({required Trigger trigger, Grip? grip}){
+    directActions[trigger.name] = HandAction(trigger: trigger, grip: grip);
+  }
+
 
 }
 

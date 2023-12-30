@@ -28,7 +28,7 @@ class GripSettings2 extends StatelessWidget{
         children: [
           const ThumbTapSwitch(),
           //cycle trigger selector
-          const CycleTriggerSelector(),
+          //const CycleTriggerSelector(),
           const SizedBox(height: 10),
           Expanded(child: generalHandler.useThumbToggling?
                const DoubleTypeList()
@@ -243,7 +243,8 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
         _gripList.remove("Next Grip");
     }
     allGrips =  Map<String,Grip>.from(generalHandler.getUnusedGrips(_listType));
-    print(allGrips.keys.toList());
+    allGrips.remove("Next Grip");
+    //print(allGrips.keys.toList());
     //allGrips.remove("None");
     _items = _gripList.values.toList(); // indeces of this will change
     _actionTitles = _gripList.keys.toList(); //indeces of this will be constant
@@ -372,10 +373,78 @@ class DirectGripList extends StatefulWidget{
 
 class _DirectGripListState extends State<DirectGripList>{
 
+  Row gripRow(Grip grip){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
+      children: [
+        Text(grip.name),
+        const SizedBox(width: 5,),
+        Image.asset(grip.assetLocation,
+          fit: BoxFit.contain,
+          height: 80,),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context){
+    /*
+    Ideas for this part:
+    could be a list view, with each Trigger and then what it is connected to?
+    Things that need to be on each trigger tile:
+    - the name of the trigger
+    - what it is connected to (ie trigger or next grip)
+    - a gear/setting symbol/some way to change the time settings for the ones where you can?
+     */
+    GeneralHandler generalHandler = context.watch<GeneralHandler>();
+    List<HandAction> directActions = generalHandler.currentUser.directActions.values.toList();
 
-    return const Text("This page is coming soon");
+    return ListView.builder(
+        shrinkWrap: true,
+        itemCount: directActions.length,
+        itemBuilder: (BuildContext context, int index){
+        var action = directActions[index];
+        return ListTile(
+          title: Padding(
+            padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(action.triggerName),
+                //const SizedBox.expand(),
+                action.gripName != "None" ? gripRow(action.grip!) : Text(action.gripName),
+                //const SizedBox.shrink(),
+                action.trigger?.timeSetting != null? IconButton(
+                    onPressed: (){
+
+                    },
+                    padding: const EdgeInsets.all(5),
+                    icon: const Icon(Icons.settings, size: 20,))
+                    : Container(width: 40,),
+              ],
+            ),
+          ),
+          onTap: () async {
+            var currentGrip = action.grip;
+            var allGrips = Map<String, Grip>.from(generalHandler.gripPatterns);
+            final newGrip = await showDialog(
+                context: context,
+                builder: (context) =>
+                    GripSettingDialog(
+                        action: "Direct",
+                        currentGrip: action.gripName,
+                        grips: allGrips));
+            if (newGrip != null && newGrip != currentGrip) {
+              //Todo: send the update to the hand
+              var newGripItem = generalHandler.gripPatterns[newGrip]!;
+              generalHandler.updateAction(
+                  "direct", newGripItem, action.trigger);
+            }
+
+          },
+        );
+        }
+    );
   }
 
 }

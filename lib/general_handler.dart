@@ -15,6 +15,7 @@ class GeneralHandler extends ChangeNotifier{
   //Keys and related ble codes
   final gripPatterns = {
     "None":           Grip(name: "None",           type: "",          bleCommand: "",  assetLocation: "assets/images/logo_grey.png"),
+    "Next Grip":      Grip(name: "Next Grip",      type: "",          bleCommand: "",  assetLocation: "assets/images/logo_grey.png"),
     "Index Point":    Grip(name: "Index Point",    type: "unopposed", bleCommand: "1", assetLocation: "assets/images/grips/index_point.png"),
     "Precision Open": Grip(name: "Precision Open", type: "opposed",   bleCommand: "2", assetLocation: "assets/images/grips/precision_open.png"),
     "Relaxed":        Grip(name: "Relaxed",        type: "unopposed", bleCommand: "3", assetLocation: "assets/images/grips/relaxed.png"),
@@ -124,13 +125,15 @@ class GeneralHandler extends ChangeNotifier{
   }
 
   void updateAction(String action, Grip? grip, Trigger? trigger){
-    if(useThumbToggling){
+    if(action == "direct"){
+      currentUser.setDirectAction(trigger: trigger!, grip: grip);
+    }
+    else if(useThumbToggling){
       currentUser.setUnOpposedAction(action: action, grip: grip, trigger: trigger);
     }
     else {
       currentUser.setCombinedAction(action: action, grip: grip, trigger: trigger);
     }
-
     notifyListeners();
   }
 

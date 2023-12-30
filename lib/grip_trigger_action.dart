@@ -19,13 +19,13 @@ class Grip{
 class Trigger{
   late String name;
   late String bleCommand;
-  late double timeSetting;
+  late dynamic timeSetting;
   late String description;
   late String assetLocation;
 
-  Trigger({required this.name, required this.bleCommand, this.timeSetting = 0});
+  Trigger({required this.name, required this.bleCommand, this.timeSetting});
 
-  set time(double newTime){
+  set time(dynamic newTime){
     timeSetting = newTime;
   }
 }
