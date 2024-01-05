@@ -181,6 +181,7 @@ class GeneralHandler extends ChangeNotifier{
       case 'Switch Signals':
         currentUser.signalSettings.switchSignalOrder();
     }
+    notifyListeners();
 
   }
 

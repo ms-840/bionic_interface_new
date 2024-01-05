@@ -1,3 +1,6 @@
+import 'dart:ffi';
+
+import 'package:bionic_interface/general_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:bionic_interface/data_handling/data_handler.dart';
 
@@ -29,11 +32,12 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   bool showOnePlot = false;
 
   late DataHandler dataHandler;
+  late GeneralHandler generalHandler;
 
   @override
   void initState() {
     super.initState();
-
+    generalHandler = Provider.of<GeneralHandler>(context, listen: false);
     dataHandler = Provider.of<DataHandler>(context, listen: false);
     dataHandler.clearPlottingData();
     setState(() {});
@@ -42,23 +46,18 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   }
 
 
-  late Widget toggledLineChartData;
-  late Widget extraChart;
+  late Widget doubleLineChartData;
   //bool showOneDataPlot = false; //false: show the data on two different plots
 
 
   @override
   Widget build(BuildContext context){
-
-    if(!showOnePlot){
-      toggledLineChartData = listenableBuilder(liveDataLine(
-          dataHandler.emg2DataToPlot.toList(growable: false)));
-      extraChart = Container(); //nothing needs to be in that container
-    } else{
-      toggledLineChartData = listenableBuilder(liveDataLineTop(dataHandler.emg1DataToPlot.toList(growable: false), emg1Color, "emg1 [uV]"));
-      extraChart = listenableBuilder(liveDataLineBottom(dataHandler.emg2DataToPlot.toList(), emg2Color, "emg2 [uV]"));
-    }
-
+      double max = 1000; //TODO: this needs to be changed so it can be altered
+      doubleLineChartData = listenableBuilder(liveDataLine(
+          dataHandler.emg1DataToPlot.toList(growable: false),
+          dataHandler.emg2DataToPlot.toList(growable: false),
+          max,
+      ));
     return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
         body: Stack(
@@ -67,17 +66,26 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
               padding: const EdgeInsets.fromLTRB(20, 20, 0, 15),
               child: Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 30,),
             ),
+            //doubleLineChartData,
             Padding(
-              padding: const EdgeInsets.fromLTRB(0, 40, 0, 15),
+              padding: const EdgeInsets.fromLTRB(0,50,0,15),
+              child: rangeSlidersLayers(max, doubleLineChartData),
+            ),
+            /*Padding(
+              padding: const EdgeInsets.fromLTRB(0, 50, 0, 15),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  toggledLineChartData,
-                  extraChart,
+                  stackLineAndSliders(
+                      dataLine: doubleLineChartData,
+                      sliders: const Icon(Icons.ac_unit),
+                      //sliders: rangeSlidersLayers(max),
+                  ),
                   //ElevatedButton(onPressed: (){setState(() {showLiveData = !showLiveData;});}, child: Text("Change Data Presentation")),
                 ],
               ),
             ),
+            */
           ],
         ),
 
@@ -121,8 +129,6 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
         )
     );
   }
-
-
 
   void openSettingsDialogue() async {
     final settings = await showDialog(
@@ -169,16 +175,18 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   }
 
   //Defining the different plots
-  Expanded liveDataLine(List<FlSpot> data){
+  Expanded liveDataLine(List<FlSpot> aData, List<FlSpot> bData, double max){
+    RangeValues rangeA = generalHandler.getSignalSettings("Signal A Range");
+    RangeValues rangeB = generalHandler.getSignalSettings("Signal B Range");
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 20, top: 20, right: 30, left: 10),
+        padding: const EdgeInsets.only(bottom: 15, top: 15, right: 0, left: 0),
         child: LineChart(
           LineChartData(
-            minY: -emg2PlotScale,
-            maxY: emg2PlotScale,
-            minX: data.first.x,
-            maxX: data.last.x,
+            minY: 0,
+            maxY: max,
+            minX: aData.first.x,
+            maxX: bData.last.x,
             lineTouchData: const LineTouchData(enabled: true), // presumably can be used to control how touch is handled by the app
             clipData: const FlClipData.all(),
             gridData: const FlGridData(
@@ -186,13 +194,25 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
               drawVerticalLine: false,
             ),
             borderData: FlBorderData(show: true),
+            extraLinesData: ExtraLinesData(
+              horizontalLines: [
+                HorizontalLine(y: rangeA.start, color: emg1Color),
+                HorizontalLine(y: rangeA.end, color: emg1Color),
+                HorizontalLine(y: rangeB.start, color: emg2Color),
+                HorizontalLine(y: rangeB.end, color: emg2Color),
+              ]
+            ),
             lineBarsData: [
-              dataLine(data, emg2Color),
+              dataLine(aData, emg1Color),
+              dataLine(bData, emg2Color)
             ],
-            titlesData: FlTitlesData(
+            titlesData: const FlTitlesData(
               show: true,
-              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              leftTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              bottomTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+              /*
               bottomTitles: const AxisTitles(
                   axisNameWidget: Text("Time (s)"),
                   sideTitles: SideTitles(interval: 1, showTitles: true, reservedSize: 40,)
@@ -201,6 +221,8 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
                 axisNameWidget: const Text("emg2 (uV)"),
                 sideTitles: SideTitles(interval: emg2PlotScale/2, showTitles: true, reservedSize: 40,),
               ),
+
+               */
             ),
           ),
           duration: const Duration(milliseconds: 0), //This is necessary to prevent the weird fluttering in the data
@@ -210,78 +232,55 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
     );
   }
 
-  Expanded liveDataLineTop(List<FlSpot> data, Color color, String titleText){
-    return Expanded(
-      child: Padding(
-        padding: const EdgeInsets.only(bottom: 20, top: 20, right: 30, left: 10),
-        child: LineChart(
-          LineChartData(
-            minY: -emg1PlotScale,
-            maxY: emg1PlotScale,
-            minX: data.first.x,
-            maxX: data.last.x,
-            lineTouchData: const LineTouchData(enabled: false), // presumably can be used to control how touch is handled by the app
-            clipData: const FlClipData.all(),
-            gridData: const FlGridData(
-              show: true,
-              drawVerticalLine: false,
-            ),
-            borderData: FlBorderData(show: true),
-            lineBarsData: [dataLine(data, color),],
-            titlesData: FlTitlesData(
-              show: true,
-              topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              bottomTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-              leftTitles: AxisTitles(
-                axisNameWidget: Text(titleText),
-                sideTitles: const SideTitles(showTitles: true, reservedSize: 45),
-              ),
-            ),
-          ),
-          duration: Duration.zero, //This is necessary to prevent the weird fluttering in the data
-
-        ),
-      ),
+  Widget stackLineAndSliders({required Widget dataLine, required Widget sliders}){
+    return Stack(
+      children: [
+        dataLine,
+        sliders
+      ],
     );
   }
 
-  Expanded liveDataLineBottom(List<FlSpot> data, Color color, String titleText){
-    return Expanded(
-        child: Padding(
-          padding: const EdgeInsets.only(bottom: 0, top: 0, right: 30, left: 10),
-          child:LineChart(
-            LineChartData(
-              minY: -emg2PlotScale,
-              maxY: emg2PlotScale,
-              minX: data.first.x,
-              maxX: data.last.x,
-              lineTouchData: const LineTouchData(enabled: false), // presumably can be used to control how touch is handled by the app
-              clipData: const FlClipData.all(),
-              gridData: const FlGridData(
-                show: true,
-                drawVerticalLine: false,
-              ),
-              borderData: FlBorderData(show: true),
-              lineBarsData: [dataLine(data, color),],
-              titlesData: FlTitlesData(
-                show: true,
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                bottomTitles: const AxisTitles(
-                    axisNameWidget: Text("Time (s)"),
-                    sideTitles: SideTitles(interval: 1, showTitles: true, reservedSize: 30,)
-                ),
-                leftTitles: AxisTitles(
-                  axisNameWidget: Text(titleText),
-                  sideTitles: const SideTitles(showTitles: true, reservedSize: 45,),
-                ),
-              ),
-            ),
-            duration: Duration.zero, //This is necessary to prevent the weird fluttering in the data
-
-          ),
-        )
+  Widget rangeSlidersLayers(double max, Widget dataLine){
+    return Row(
+      children: [
+        RotatedBox(
+          quarterTurns: 3,
+          child: thresholdSlider(
+              sliderType: "Signal A Range",
+              max: max,),
+        ),
+        dataLine,
+        RotatedBox(
+          quarterTurns: 3,
+          child: thresholdSlider(
+            sliderType: "Signal B Range",
+            max: max,),
+        ),
+      ],
+    );
+  }
+  RangeSlider thresholdSlider({
+    required double max,
+    required String sliderType}){
+    final range = generalHandler.getSignalSettings(sliderType);
+    //print(range);
+    return RangeSlider(
+        max: max,
+        divisions: max~/10,
+        //labels: RangeLabels(range.start.toString(), range.end.toString(),),
+        values: range,
+        onChanged: (RangeValues values){
+          //update the values in the user settings
+          setState(() {
+            generalHandler.updateSignalSettings(
+                setting: sliderType,
+                primaryNewValue: values.start,
+                secondaryNewValue: values.end
+            );
+          });
+          //print("New values: ${values.start}, ${values.end}");
+        }
     );
   }
   //#endregion

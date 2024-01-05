@@ -361,7 +361,7 @@ class SignalSettings {
     return RangeValues(signalAon,signalAmax);
   }
   RangeValues get signalBrange{
-    return RangeValues(signalBon, signalBon);
+    return RangeValues(signalBon, signalBmax);
   }
 
   void setSignalArange({double on = -1, double max = -1}){
@@ -373,7 +373,7 @@ class SignalSettings {
       signalAon = on;
     }
     if(max >= 0){
-      signalAon = max;
+      signalAmax = max;
     }
   }
 
@@ -386,7 +386,7 @@ class SignalSettings {
       signalBon = on;
     }
     if(max >= 0){
-      signalBon = max;
+      signalBmax = max;
     }
   }
 }
