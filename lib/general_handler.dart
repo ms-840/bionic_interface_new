@@ -137,6 +137,53 @@ class GeneralHandler extends ChangeNotifier{
     notifyListeners();
   }
 
+  dynamic getSignalSettings(String setting){
+    """
+    Available options:
+    - "Signal A Range"
+    - "Signal B Range"
+    - "Signal A Gain"
+    - "Signal B Gain"
+    - "Switch Signals"
+    """;
+    switch(setting){
+      case 'Signal A Range':
+        return currentUser.signalSettings.signalArange;
+      case 'Signal B Range':
+        return currentUser.signalSettings.signalBrange;
+      case 'Signal A Gain':
+        return currentUser.signalSettings.signalAgain;
+      case 'Signal B Gain':
+        return currentUser.signalSettings.signalBgain;
+      case 'Switch Signals':
+        return currentUser.signalSettings.switchInputs;
+    }
+  }
+
+  void updateSignalSettings({required String setting, double primaryNewValue = -1, double secondaryNewValue = -1}){
+    """
+    Available options:
+    - "Signal A Range"
+    - "Signal B Range"
+    - "Signal A Gain"
+    - "Signal B Gain"
+    - "Switch Signals"
+    """;
+    switch(setting){
+      case 'Signal A Range':
+        currentUser.signalSettings.setSignalArange(on: primaryNewValue, max: secondaryNewValue);
+      case 'Signal B Range':
+        currentUser.signalSettings.setSignalBrange(on: primaryNewValue, max: secondaryNewValue);
+      case 'Signal A Gain':
+        currentUser.signalSettings.signalAgain = primaryNewValue;
+      case 'Signal B Gain':
+        currentUser.signalSettings.signalBgain = primaryNewValue;
+      case 'Switch Signals':
+        currentUser.signalSettings.switchSignalOrder();
+    }
+
+  }
+
   //#region ble commands
   void updateGripSettingsBle(String grip, String rule){
     //Todo: send the commands for updating grip settings

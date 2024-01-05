@@ -5,6 +5,8 @@
 import 'package:bionic_interface/grip_trigger_action.dart';
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+
 class User{
   //constructor
   User(this._userName, [this._adminAccess=false, this._childLock=false]);
@@ -16,6 +18,7 @@ class User{
   bool _adminAccess = false;
   bool _childLock = false; //not sure yet if this is necessary
 
+  SignalSettings signalSettings = SignalSettings();
 
   Map<Grip,Trigger> _gripSettings = {}; //Format gripName:ruleName
 
@@ -90,8 +93,6 @@ class User{
   set importGripSettings (Map<Grip,Trigger> gripSettings){
     _gripSettings = gripSettings;
   }
-
-
 
   void setCombinedAction({required String action, Grip? grip, Trigger? trigger}){
     combinedActions[action] = HandAction(grip: grip, trigger: trigger);
@@ -336,4 +337,56 @@ class AnonymousUser extends User{
     super._gripSettings.clear();
   }
 
+}
+
+class SignalSettings {
+  //This hopefully somewhat simplifies the user class, but may also be somewhat unnecessary
+  late double signalAon;
+  late double signalAmax;
+  late double signalBon;
+  late double signalBmax;
+
+  double signalAgain = 1;
+  double signalBgain = 1;
+
+  // i am not sure yet how this should be used but it exists
+  bool switchInputs = false;
+  void switchSignalOrder(){
+    switchInputs = !switchInputs;
+  }
+
+  SignalSettings({this.signalAon = 0, this.signalAmax = 10, this.signalBon = 0, this.signalBmax = 10});
+
+  RangeValues get signalArange{
+    return RangeValues(signalAon,signalAmax);
+  }
+  RangeValues get signalBrange{
+    return RangeValues(signalBon, signalBon);
+  }
+
+  void setSignalArange({double on = -1, double max = -1}){
+    if(on>max){
+      //This should not be possible from the sliders, but just to be sure this is hard coded in as well
+      on=max;
+    }
+    if(on >= 0){
+      signalAon = on;
+    }
+    if(max >= 0){
+      signalAon = max;
+    }
+  }
+
+  void setSignalBrange({double on = -1, double max = -1}){
+    if(on>max){
+      //This should not be possible from the sliders, but just to be sure this is hard coded in as well
+      on=max;
+    }
+    if(on >= 0){
+      signalBon = on;
+    }
+    if(max >= 0){
+      signalBon = max;
+    }
+  }
 }
