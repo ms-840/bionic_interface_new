@@ -1,7 +1,9 @@
 import 'ble_interface.dart';
+import 'data_generator.dart';
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'dart:collection';
 import 'dart:async';
 
 
@@ -90,7 +92,7 @@ class DataHandler extends ChangeNotifier{
     setTimeBackToZero();
      // ensures that the ble disconnection happens properly
     bleInterface.subscribeToCharacteristic();
-    final duration = (1/samplingRate*1000*32).toInt(); //it should try to do this more often than it receives data
+    final duration = (1/samplingRate*1000).toInt(); //it should try to do this more often than it receives data
     //5 ms for a sampling rate of 200
 
     dataTransferTimer = Timer.periodic(Duration(milliseconds: duration), (timer){
@@ -133,6 +135,21 @@ class DataHandler extends ChangeNotifier{
       intValue-=65536;
     }
     return intValue.toDouble();
+
+
+  }
+
+  late DataGenerator dataGenerator;
+
+  void startRandomDataGeneration(){
+    dataGenerator = DataGenerator(samplingRate: samplingRate);
+    final duration = (1/samplingRate*1000).toInt();
+
+    dataTransferTimer = Timer.periodic(Duration(milliseconds: duration), (timer){
+      var newdata = dataGenerator.generateDataForDataHandler();
+      updatePlottingData([FlSpot(newdata[0], newdata[1])], [FlSpot(newdata[0], newdata[2])]);
+      print(newdata);
+    });
   }
 //#endregion
 }

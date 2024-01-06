@@ -42,7 +42,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
     dataHandler.clearPlottingData();
     setState(() {});
     //Turn on for ble data transfer
-    dataHandler.startDataTransfer();
+    dataHandler.startRandomDataGeneration();
   }
 
 
@@ -63,12 +63,12 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
         body: Stack(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(20, 20, 0, 15),
+              padding: const EdgeInsets.fromLTRB(20, 30, 0, 15),
               child: Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 30,),
             ),
             //doubleLineChartData,
             Padding(
-              padding: const EdgeInsets.fromLTRB(0,50,0,15),
+              padding: const EdgeInsets.fromLTRB(0,70,0,30),
               child: rangeSlidersLayers(max, doubleLineChartData),
             ),
             /*Padding(
@@ -180,7 +180,8 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
     RangeValues rangeB = generalHandler.getSignalSettings("Signal B Range");
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.only(bottom: 15, top: 15, right: 0, left: 0),
+        padding: const EdgeInsets.only(bottom: 25, top: 25, right: 0, left: 0),
+        //top and bottom 25 seems to align the sliders with the data line quite well
         child: LineChart(
           LineChartData(
             minY: 0,
@@ -243,6 +244,8 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
 
   Widget rangeSlidersLayers(double max, Widget dataLine){
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         RotatedBox(
           quarterTurns: 3,
@@ -266,8 +269,9 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
     final range = generalHandler.getSignalSettings(sliderType);
     //print(range);
     return RangeSlider(
+        activeColor: sliderType == "Signal A Range"? emg1Color:emg2Color,
         max: max,
-        divisions: max~/10,
+        //divisions: max~/10,
         //labels: RangeLabels(range.start.toString(), range.end.toString(),),
         values: range,
         onChanged: (RangeValues values){
