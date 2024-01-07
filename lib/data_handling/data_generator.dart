@@ -10,7 +10,7 @@ class DataGenerator{
   late double samplingRate;
   late double xStep = 1/samplingRate;
 
-  int animationState = 3;
+  int animationState = 2;
   double yMax = 1; // This is just to make trying stuff out easier, can be changed
 
   void incrementAnimationState(int increment){
@@ -49,12 +49,12 @@ class DataGenerator{
     } else if(animationState == 1) {
       ecgValue = xValue % yMax;
     } else if (animationState == 2){
-      ecgValue = sin(5*xValue)+1;
-      mcgValue = cos(5*xValue)+1;
+      ecgValue = 2.5*(sin(xValue)+1);
+      mcgValue = 2.5*(sin(pi+xValue)+1);
     } else{
       // to be used for triggering, spikes happen every second
-      ecgValue = xValue%1<0.005? 1: Random().nextDouble()*0.3;
-      mcgValue = xValue%1<0.005? 1: Random().nextDouble()*0.3;
+      ecgValue = xValue%1<0.005? 1: Random().nextDouble()*3;
+      mcgValue = xValue%1<0.005? 1: Random().nextDouble()*3;
     }
     // it should be [time, ECG, MCG]
     final ret = [xValue, ecgValue, mcgValue];

@@ -355,7 +355,7 @@ class SignalSettings {
     switchInputs = !switchInputs;
   }
 
-  SignalSettings({this.signalAon = 0, this.signalAmax = 10, this.signalBon = 0, this.signalBmax = 10});
+  SignalSettings({this.signalAon = 1, this.signalAmax = 3, this.signalBon = 1, this.signalBmax = 3});
 
   RangeValues get signalArange{
     return RangeValues(signalAon,signalAmax);

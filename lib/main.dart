@@ -36,12 +36,12 @@ class MainApp extends StatelessWidget {
       child: MaterialApp(
         title: 'Bionic Interface',
         theme: ThemeData(
-
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF037A90),
             primary: const Color(0xFF037A90),
             secondary: const Color(0xFFFC0E9F),
             tertiary: const Color(0xFF00C2BA),
+
             brightness: Brightness.light,
           ),
           useMaterial3: true,

@@ -21,14 +21,14 @@ class DataPresentationPage extends StatefulWidget{
 
 class _DataPresentationPageState extends State<DataPresentationPage>{
   //Things to change
-  final limitCount = 500;
+  final limitCount = 100;
 
   //colors:
-  final Color emg1Color = Colors.deepOrange;
-  final Color emg2Color = Colors.indigo;
+  late Color emg1Color;
+  late Color emg2Color;
 
-  double emg1PlotScale = 1000;
-  double emg2PlotScale = 5000;
+  //double emg1PlotScale = 1000;
+  //double emg2PlotScale = 5000;
   bool showOnePlot = false;
 
   late DataHandler dataHandler;
@@ -43,6 +43,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
     setState(() {});
     //Turn on for ble data transfer
     dataHandler.startRandomDataGeneration();
+
   }
 
 
@@ -52,7 +53,9 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
 
   @override
   Widget build(BuildContext context){
-      double max = 1000; //TODO: this needs to be changed so it can be altered
+    emg1Color = Theme.of(context).colorScheme.secondary;
+    emg2Color = Theme.of(context).colorScheme.tertiary;
+      double max = 5; //TODO: this needs to be changed so it can be altered
       doubleLineChartData = listenableBuilder(liveDataLine(
           dataHandler.emg1DataToPlot.toList(growable: false),
           dataHandler.emg2DataToPlot.toList(growable: false),
@@ -60,35 +63,33 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
       ));
     return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
-        body: Stack(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 30, 0, 15),
-              child: Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 30,),
-            ),
-            //doubleLineChartData,
-            Padding(
-              padding: const EdgeInsets.fromLTRB(0,70,0,30),
-              child: rangeSlidersLayers(max, doubleLineChartData),
-            ),
-            /*Padding(
-              padding: const EdgeInsets.fromLTRB(0, 50, 0, 15),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  stackLineAndSliders(
-                      dataLine: doubleLineChartData,
-                      sliders: const Icon(Icons.ac_unit),
-                      //sliders: rangeSlidersLayers(max),
-                  ),
-                  //ElevatedButton(onPressed: (){setState(() {showLiveData = !showLiveData;});}, child: Text("Change Data Presentation")),
-                ],
-              ),
-            ),
-            */
+        appBar: AppBar(
+          title: const Text("EMG Signals"),
+          actions: [
+            const SizedBox.shrink(),
+            Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
+            const SizedBox(width: 10,)
           ],
         ),
+        body: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              //doubleLineChartData,
+              SizedBox(
+                height: 500,
+                child: Padding(
+                  padding: const EdgeInsets.fromLTRB(0,0,0,10),
+                  child: rangeSlidersLayers(max, doubleLineChartData),
+                ),
+              ),
+            ],
+          ),
+        ),
 
+        /*
         floatingActionButton: PopupMenuButton<String>(
           itemBuilder: (context) => [
             PopupMenuItem(
@@ -126,7 +127,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
           ],
           icon: const Icon(Icons.arrow_drop_down),
 
-        )
+        )*/
     );
   }
 
@@ -135,16 +136,16 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
         context: context,
         builder: (context) => SettingsDialog(
           timeValue: dataHandler.timeLengthToPlot,
-          emg1Limits: emg1PlotScale,
-          emg2Limits: emg2PlotScale,
+          //emg1Limits: emg1PlotScale,
+          //emg2Limits: emg2PlotScale,
         )
     );
     //if data was passed along, change the settings
     // settings: [timeValue, emg2Limit, emg1Limit,]
     if(settings != null){
       dataHandler.setTimeLengthToPlot = settings[0];
-      emg2PlotScale = settings[1];
-      emg1PlotScale = settings[2];
+      //emg2PlotScale = settings[1];
+      //emg1PlotScale = settings[2];
     }
 
   }
@@ -263,28 +264,42 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
       ],
     );
   }
-  RangeSlider thresholdSlider({
+  Widget thresholdSlider({
     required double max,
     required String sliderType}){
     final range = generalHandler.getSignalSettings(sliderType);
     //print(range);
-    return RangeSlider(
-        activeColor: sliderType == "Signal A Range"? emg1Color:emg2Color,
-        max: max,
-        //divisions: max~/10,
-        //labels: RangeLabels(range.start.toString(), range.end.toString(),),
-        values: range,
-        onChanged: (RangeValues values){
-          //update the values in the user settings
-          setState(() {
-            generalHandler.updateSignalSettings(
-                setting: sliderType,
-                primaryNewValue: values.start,
-                secondaryNewValue: values.end
-            );
-          });
-          //print("New values: ${values.start}, ${values.end}");
-        }
+    return SliderTheme(
+      data: const SliderThemeData(
+        minThumbSeparation: 0,
+        inactiveTrackColor: Color(0x7F7F7F7F),
+        rangeTrackShape: RoundedRectRangeSliderTrackShape(
+        //I am not sure if there is really all that much i can do with this
+        ),
+        rangeThumbShape: RoundRangeSliderThumbShape(
+          enabledThumbRadius: 1,
+          disabledThumbRadius: 1,
+
+        ),
+      ),
+      child: RangeSlider(
+          activeColor: sliderType == "Signal A Range"? emg1Color:emg2Color,
+          max: max,
+          //divisions: max~/10,
+          //labels: RangeLabels(range.start.toString(), range.end.toString(),),
+          values: range,
+          onChanged: (RangeValues values){
+            //update the values in the user settings
+            setState(() {
+              generalHandler.updateSignalSettings(
+                  setting: sliderType,
+                  primaryNewValue: values.start,
+                  secondaryNewValue: values.end
+              );
+            });
+            //print("New values: ${values.start}, ${values.end}");
+          }
+      ),
     );
   }
   //#endregion

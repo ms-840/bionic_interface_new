@@ -63,15 +63,15 @@ class DataHandler extends ChangeNotifier{
 
   //#region Functions to help pass the data from the ble device to plotting
   StreamController bleStreamController = StreamController();
-  double currentTimeE = 0;
-  double currentTimeM = 0;
+  double currentTimeA = 0;
+  double currentTimeB = 0;
 
   void incrementTime(String identifier){
     if(identifier == "E"){
-      currentTimeE += 1/samplingRate;
+      currentTimeA += 1/samplingRate;
     }
     else if(identifier == "M"){
-      currentTimeM += 1/samplingRate;
+      currentTimeB += 1/samplingRate;
     }
     else{
       print("Data Handler: incrementing time not possible: identifier not correct");
@@ -79,8 +79,8 @@ class DataHandler extends ChangeNotifier{
   }
 
   void setTimeBackToZero(){
-    currentTimeE = 0;
-    currentTimeM = 0;
+    currentTimeA = 0;
+    currentTimeB = 0;
   }
 
   late Timer dataTransferTimer;
@@ -107,11 +107,11 @@ class DataHandler extends ChangeNotifier{
   }
 
   void cancelDataTransfer(){
-    bleInterface.unsubscribeFromCharacteristic();
+    //bleInterface.unsubscribeFromCharacteristic();
     dataTransferTimer.cancel();
   }
   void disconnectBLE(){
-    bleInterface.disconnect();
+    //bleInterface.disconnect();
   }
 
   void extractBLEdata(){
@@ -148,7 +148,8 @@ class DataHandler extends ChangeNotifier{
     dataTransferTimer = Timer.periodic(Duration(milliseconds: duration), (timer){
       var newdata = dataGenerator.generateDataForDataHandler();
       updatePlottingData([FlSpot(newdata[0], newdata[1])], [FlSpot(newdata[0], newdata[2])]);
-      print(newdata);
+      //print(newdata);
+      notifyListeners();
     });
   }
 //#endregion

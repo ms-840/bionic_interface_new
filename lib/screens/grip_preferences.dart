@@ -15,7 +15,6 @@ class GripSettings2 extends StatelessWidget{
     var generalHandler = context.watch<GeneralHandler>();
     return Scaffold(
       appBar: AppBar(
-
         title: const Text("Rebel Bionics"),
         actions: [
           const SizedBox.shrink(),
