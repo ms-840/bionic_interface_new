@@ -17,6 +17,7 @@ class User{
   //todo: need to change access types to clinician, editor, viewer
   bool _adminAccess = false;
   bool _childLock = false; //not sure yet if this is necessary
+  String _accessType = "editor"; //options: viewer, editor, clinician
 
   SignalSettings signalSettings = SignalSettings();
 
@@ -330,7 +331,8 @@ class User{
 class AnonymousUser extends User{
   //This is the user class to be used when no login has occurred
   AnonymousUser() : super(''){
-    print("Anonymous User created");
+    _accessType = "viewer";
+    //print("Anonymous User created");
   }
 
   void clearUserData(){

@@ -198,6 +198,7 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
   late List<HandAction>_items;
   late List<String> _actionTitles;
 
+  bool enableRemoveState = false;
 
   @override
   void initState(){
@@ -254,6 +255,7 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
         children: [
           ReorderableListView(
               padding: const EdgeInsets.symmetric(horizontal: 10),
+              physics : const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               children: <Widget>[
                 for(var (index, action) in _items.indexed)
@@ -317,7 +319,17 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
                         }
                       }
                     },
-                    trailing: ReorderableDragStartListener(
+                    trailing: enableRemoveState? IconButton(
+                        onPressed: (){
+                          generalHandler.removeGripFromUserList(_listType, _actionTitles[index]);
+                        },
+                        style: IconButton.styleFrom(
+                          foregroundColor: Theme.of(context).colorScheme.secondary,
+                        ),
+                        icon: const Icon(Icons.delete)
+                    )
+                        :
+                    ReorderableDragStartListener(
                       index: index,
                       child: const Icon(Icons.drag_handle),
                     ),
@@ -326,7 +338,6 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
               onReorder: (int oldIndex, int newIndex){
                 /* how this needs to work:
                   when reordered, each of the Hand actions needs to to be re-attributed to the action titles
-                  so:
                   1. figure out the indeces of the old hand action tiles -> that is _items
                   2. reorder the tiles
                   3. reattribute
@@ -350,10 +361,27 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
           
           ),
           ElevatedButton(
-              onPressed: (){
+              onPressed: enableRemoveState? null : (){
                 generalHandler.addGripsToUserList(_listType);
               },
               child: const Icon(Icons.add)),
+          const SizedBox(height: 10,),
+          ElevatedButton(
+              style: enableRemoveState? ElevatedButton.styleFrom(
+                backgroundColor: Theme.of(context).colorScheme.secondary,
+                foregroundColor: Colors.white,
+              ) : ElevatedButton.styleFrom(
+                foregroundColor: Theme.of(context).colorScheme.secondary,
+                backgroundColor: const Color(0xFFfee6f5),
+              )
+              ,
+              onPressed: (){
+                setState(() {
+                  enableRemoveState = !enableRemoveState;
+                  print(enableRemoveState);
+                });
+              },
+              child: const Icon(Icons.remove)),
         ],
 
       ),

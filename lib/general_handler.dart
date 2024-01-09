@@ -93,11 +93,30 @@ class GeneralHandler extends ChangeNotifier{
   void addGripsToUserList(String type){
     switch(type){
       case "Opposed":
-        currentUser.addOpposedAction();
+        if(gripsTyped()[0].length > currentUser.opposedActions.length){
+          currentUser.addOpposedAction();
+        }
+
       case "Unopposed":
-        currentUser.addUnopposedAction();
+        if(gripsTyped()[1].length > currentUser.unopposedActions.length){
+          currentUser.addUnopposedAction();
+        }
       case "Combined":
-        currentUser.addCombinedAction();
+        if(gripPatterns.length - 2 > currentUser.combinedActions.length) {
+          currentUser.addCombinedAction();
+        }
+    }
+    notifyListeners();
+  }
+
+  void removeGripFromUserList(String type, String actionName){
+    switch(type){
+      case "Opposed":
+        currentUser.removeOpposedAction(actionName);
+      case "Unopposed":
+        currentUser.removeUnopposedAction(actionName);
+      case "Combined":
+        currentUser.removeCombinedAction(actionName);
     }
     notifyListeners();
   }
