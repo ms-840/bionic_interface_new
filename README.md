@@ -33,11 +33,13 @@ Creates any necessary inputs for using the app without having a physical device 
 
 # Things that still need to be added:
 - [] have the grip settings pop up wrap to fit the number of items available
-- [] Ability to remove things from the grip settings listview
+- [] Have the direct actions line up better with each other
+- [X] Ability to remove things from the grip settings listview
 - [] Popups for changing trigger settings ->  though this may be better to be in the emg page rather than grip settings?
 - [] Adding ability to login + dealing with different account types 
 - [] Figuring out best way to persist data between sessions (incl user data )
 - [] Functionality of other features on emg signal page beyond just the slider 
 - [] All of the Bluetooth integration -> still needs the protocols from the firmware, i don't think those exist yet
+- [] Front page rehaul
 
 

@@ -54,7 +54,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   @override
   Widget build(BuildContext context){
     emg1Color = Theme.of(context).colorScheme.secondary;
-    emg2Color = Theme.of(context).colorScheme.tertiary;
+    emg2Color = Theme.of(context).colorScheme.primary;
       double max = 5; //TODO: this needs to be changed so it can be altered
       doubleLineChartData = listenableBuilder(liveDataLine(
           dataHandler.emg1DataToPlot.toList(growable: false),
@@ -85,6 +85,11 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
                   child: rangeSlidersLayers(max, doubleLineChartData),
                 ),
               ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                child: trainingCircleRow(),
+              ),
+              AdvancedSettings(),
             ],
           ),
         ),
@@ -266,7 +271,8 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   }
   Widget thresholdSlider({
     required double max,
-    required String sliderType}){
+    required String sliderType})
+  {
     final range = generalHandler.getSignalSettings(sliderType);
     //print(range);
     return SliderTheme(
@@ -304,6 +310,68 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   }
   //#endregion
 
+
+  //#training Circle
+  //TODO: these values should not exist
+  bool show = true;
+  var status0 = 0;
+  var status1 = 1;
+  var status2 = 2;
+  Widget trainingCircleRow(){
+    //TODO: this is not properly hooked up yet
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        // 3 circles to test the triggers
+        // one button to reset
+        //const Text("Trigger Training: "),
+        trainingCircle("Open Open", status0),
+        trainingCircle("Hold Open", status1),
+        trainingCircle("Co Con", status2),
+        IconButton(
+            onPressed: (){
+              //TODO: this should send message back to the ble class to clear the trigger statuses
+              setState(() {
+                //TODO: This is temporary
+                if(show){
+                  status1 = 0;
+                  status2 = 0;
+                  print("reset!");
+                } else{
+                  status1 = 1;
+                  status2 = 2;
+                }
+                show = !show;
+              });
+            },
+            icon: const Icon(Icons.refresh))
+      ],
+    );
+  }
+
+  Widget trainingCircle(String triggerName, int status){
+    var grey = const Color(0xFF7F7F7F);
+    var pink = Theme.of(context).colorScheme.secondary;
+    var blue = Theme.of(context).colorScheme.primary;
+    return Column(
+      children: [
+        Text(triggerName),
+        Container(
+          width: 30,
+          height:  30,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: status == 2 ? pink : status == 1? blue : grey,
+          ),
+        ),
+      ],
+    );
+  }
+
+  //#endregion
+
+
   @override
   void didChangeDependencies() {
     dataHandler = Provider.of<DataHandler>(context, listen: false);
@@ -318,6 +386,32 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
     dataHandler.disconnectBLE();
     super.dispose();
   }
+}
+
+class AdvancedSettings extends StatefulWidget{
+  @override
+  State<AdvancedSettings> createState() => _AdvancedSettingsState();
+}
+
+class _AdvancedSettingsState extends State<AdvancedSettings>{
+
+  @override
+  void initState(){
+
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // TODO: implement build
+    return ExpansionTile(
+      title: const Text("Advanced Settings"),
+      controlAffinity: ListTileControlAffinity.leading,
+      children: [
+
+      ],
+    );
+  }
+
 }
 
 class SettingsDialog extends StatefulWidget{
