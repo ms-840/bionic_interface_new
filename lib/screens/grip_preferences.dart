@@ -331,7 +331,7 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
                         :
                     ReorderableDragStartListener(
                       index: index,
-                      child: const Icon(Icons.drag_handle),
+                      child: index == 0 ? const Icon(Icons.home):  const Icon(Icons.drag_handle),
                     ),
                   ),
               ],
