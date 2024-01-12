@@ -3,7 +3,9 @@ import 'screens/home.dart';
 import 'screens/data_plot.dart';
 import 'screens/grip_preferences_old.dart';
 import 'screens/grip_preferences.dart';
+import 'screens/hand_calibration.dart';
 import 'screens/new_user.dart';
+
 
 
 class RouteGenerator{
@@ -15,6 +17,8 @@ class RouteGenerator{
         return MaterialPageRoute(builder: (_) => const DataPresentationPage());
       case '/grip':
         return MaterialPageRoute(builder: (_) => const GripSettings2());
+      case '/calibration':
+        return MaterialPageRoute(builder: (_) => const HandCalibration());
       default:
         return _errorRoute();
     }

@@ -326,8 +326,8 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
         // 3 circles to test the triggers
         // one button to reset
         //const Text("Trigger Training: "),
-        trainingCircle("Open Open", status0),
-        trainingCircle("Hold Open", status1),
+        trainingCircle("Hold Open", status0),
+        trainingCircle("Open Open", status1),
         trainingCircle("Co Con", status2),
         IconButton(
             onPressed: (){
@@ -337,7 +337,6 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
                 if(show){
                   status1 = 0;
                   status2 = 0;
-                  print("reset!");
                 } else{
                   status1 = 1;
                   status2 = 2;
@@ -397,7 +396,7 @@ class _AdvancedSettingsState extends State<AdvancedSettings>{
 
   @override
   void initState(){
-
+    //todo: initialize this by actually importing the settings
   }
 
   @override
@@ -407,11 +406,108 @@ class _AdvancedSettingsState extends State<AdvancedSettings>{
       title: const Text("Advanced Settings"),
       controlAffinity: ListTileControlAffinity.leading,
       children: [
-
+        const Text("This is where the Advanced Settings will be located"),
+        const Text("!Under construction!"),
+        inputOptions(),
+        triggerOptions(),
+        singleSiteOptions(),
+        notificationsOptions(),
+        Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              const Text("Hand Calibration"),
+              IconButton(
+                  onPressed: (){
+                    Navigator.pushNamed(context, "/calibration");
+                  },
+                  icon: const Icon(Icons.settings))
+            ],
+          ),
+        )
       ],
     );
   }
 
+  Widget inputOptions(){
+    return const ExpansionTile(
+      title: Text("Input Options"),
+      controlAffinity: ListTileControlAffinity.leading,
+      children: [
+        Text("Nothing here yet"),
+      ],
+    );
+  }
+
+  Widget triggerOptions(){
+    return const ExpansionTile(
+      title: Text("Trigger Options"),
+      controlAffinity: ListTileControlAffinity.leading,
+      children: [
+        Text("Nothing here yet"),
+      ],
+    );
+  }
+
+  Widget singleSiteOptions(){
+    return const ExpansionTile(
+      title: Text("Single Site Options"),
+      controlAffinity: ListTileControlAffinity.leading,
+      children: [
+        Text("Nothing here yet"),
+      ],
+    );
+  }
+
+  Widget notificationsOptions(){
+    return const ExpansionTile(
+      title: Text("Notifications"),
+      controlAffinity: ListTileControlAffinity.leading,
+      children: [
+        Text("Nothing here yet"),
+      ],
+    );
+  }
+
+}
+
+class InputGains extends StatelessWidget{
+
+  @override
+  Widget build(BuildContext context) {
+    return ExpansionTile(
+      title: Text("Input Gains"),
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text("A"),
+            Slider(
+                value: 0,
+                onChanged: (double newValue){
+                  //TODO: fill this out
+                  print("incomplete input gains");
+                }
+            ),
+          ],
+        ),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            Text("B"),
+            Slider(
+                value: 0,
+                onChanged: (double newValue){
+                  //TODO: fill this out
+                  print("incomplete input gains");
+                }
+            ),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 class SettingsDialog extends StatefulWidget{
