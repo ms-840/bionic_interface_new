@@ -9,26 +9,24 @@ import 'package:flutter/material.dart';
 
 class User{
   //constructor
-  User(this._userName, [this._adminAccess=false, this._childLock=false]);
+  User(this._userName);
 
   late final String _userName;
   String name = ""; //not sure if this is necessary
 
   //todo: need to change access types to clinician, editor, viewer
-  bool _adminAccess = false;
-  bool _childLock = false; //not sure yet if this is necessary
   String _accessType = "editor"; //options: viewer, editor, clinician
 
-  SignalSettings signalSettings = SignalSettings();
+  String get accessType{return _accessType;}
 
-  Map<Grip,Trigger> _gripSettings = {}; //Format gripName:ruleName
+  SignalSettings signalSettings = SignalSettings();
+  AdvancedSettings advancedSettings = AdvancedSettings();
 
   Map<String, HandAction> combinedActions = {
     //"Next Grip" : HandAction(),
     "Position 1" : HandAction(),
   };
 
-  //TODO: rethink how i structure this for new settings page
   Map<String, HandAction> unOpposedActions = {
     //"Next Grip" : HandAction(),
     "Opposed Position 1" : HandAction(
@@ -58,41 +56,16 @@ class User{
   Map<String,double> thresholdValues = {};
   //this could later include settings dictionary
 
-
   String get userName{
     return _userName;
   }
 
   bool get hasAdminAccess{
-    return _adminAccess;
+    return _accessType == "clinician";
   }
 
-  set adminAccess(bool adminAccess){
-    _adminAccess = adminAccess;
-  }
-
-  bool get hasChildLock{
-    return _childLock;
-  }
-
-  set childLock(bool childLock){
-    _childLock = childLock;
-  }
-
-  Map<Grip,Trigger> get gripSettings{
-    return _gripSettings;
-  }
-
-  Trigger ruleForGrip(Grip grip){
-    final trigger = _gripSettings[grip];
-    if(trigger!=null){
-      return trigger;
-    }
-    return Trigger(name: "None", bleCommand: "0");
-  }
-
-  set importGripSettings (Map<Grip,Trigger> gripSettings){
-    _gripSettings = gripSettings;
+  set adminAccess(String accessType){
+    _accessType = accessType;
   }
 
   void setCombinedAction({required String action, Grip? grip, Trigger? trigger}){
@@ -124,7 +97,7 @@ class User{
 
     }
       if(trigger!=null){
-        return trigger!;
+        return trigger;
       }
 
     return Trigger(name: "None", bleCommand: "0");
@@ -152,14 +125,6 @@ class User{
       return grip;
     }
     return Grip(name: "None", type: "", bleCommand: "", assetLocation: "");
-  }
-
-  void updateGripSettings(Grip grip, Trigger trigger){
-    _gripSettings[grip] = trigger;
-  }
-
-  void removeGripSetting(Grip grip){
-    if(_gripSettings.containsKey(grip)){_gripSettings.remove(grip);}
   }
 
   void toggleThumbTap(){
@@ -335,13 +300,11 @@ class AnonymousUser extends User{
     //print("Anonymous User created");
   }
 
-  void clearUserData(){
-    super._gripSettings.clear();
-  }
 
 }
 
 class SignalSettings {
+
   //This hopefully somewhat simplifies the user class, but may also be somewhat unnecessary
   late double signalAon;
   late double signalAmax;
@@ -390,5 +353,40 @@ class SignalSettings {
     if(max >= 0){
       signalBmax = max;
     }
+  }
+}
+
+class AdvancedSettings{
+  //this should contain all of the data and settings which would be considered "Advanced Settings"
+  //I kind of just want to access the values directly rather than wiht other methods, it seems silly
+
+  //input options
+  bool switchInputs = false;
+  bool useTwoSignals = true;
+  double inputGainA = 1.0;
+  double inputGainB = 1.0;
+
+  List<double> get inputGain{
+    """returns [inputGainA, inputGainB]""";
+    return [inputGainA, inputGainB];
+  }
+
+  //trigger options
+  double timeOpenOpen = 1.0; //range 0.2 - 2s
+  double timeHoldOpen = 1.0; //range  0.2 - 2s
+  double timeCoCon = 0.05; // range 0.05-0.25 s
+
+  //single site options
+  bool alternate = false; //false = fast/close, true=alternate
+  double timeAltSwitch = 1; //range 0.1 - 2s
+  double timeFastClose = 1; //range 0.1 - 2s
+  double levelFastClose = 1; //range 0.4 - 4V
+
+  //notifications
+  bool vibrate = true;
+  bool buzzer = true;
+
+  List<bool> get notifications{
+    return [vibrate, buzzer];
   }
 }

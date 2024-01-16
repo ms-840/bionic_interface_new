@@ -129,9 +129,19 @@ class GeneralHandler extends ChangeNotifier{
     //currentUser = User()
   }
 
-  List<bool> get userAccess{
+  int get userAccess{
     """ returns access in form [adminAccess, childLock]""";
-    return [currentUser.hasAdminAccess, currentUser.hasChildLock];
+    //options: viewer, editor, clinician
+    switch (currentUser.accessType){
+      case "clinician":
+        return 2;
+      case "editor":
+        return 1;
+      case "viewer":
+        return 0;
+      default:
+        return 0;
+    }
   }
 
   bool get useThumbToggling{

@@ -394,9 +394,11 @@ class AdvancedSettings extends StatefulWidget{
 
 class _AdvancedSettingsState extends State<AdvancedSettings>{
 
+  late GeneralHandler generalHandler;
   @override
   void initState(){
     //todo: initialize this by actually importing the settings
+    generalHandler = Provider.of<GeneralHandler>(context, listen: false);
   }
 
   @override
@@ -430,12 +432,67 @@ class _AdvancedSettingsState extends State<AdvancedSettings>{
     );
   }
 
+  Widget labledSwitch({String trueLabel = "True", String falseLabel = "False", required bool value, required Function(bool)? onChanged}){
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(falseLabel),
+        Switch.adaptive(
+            value: value,
+            onChanged: onChanged,
+        ),
+        Text(trueLabel),
+      ],
+    );
+  }
+
   Widget inputOptions(){
-    return const ExpansionTile(
-      title: Text("Input Options"),
+    return ExpansionTile(
+      title: const Text("Input Options"),
       controlAffinity: ListTileControlAffinity.leading,
       children: [
-        Text("Nothing here yet"),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+          child: Row( //Switch inputs
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const Text("Switch Inputs"),
+              Expanded(child: Container()),
+              labledSwitch(
+                  value: generalHandler.currentUser.advancedSettings.switchInputs,
+                  onChanged: (bool newValue){
+                    generalHandler.currentUser.advancedSettings.switchInputs = newValue;
+                    setState(() {});
+                  },
+                  trueLabel: "BA",
+                  falseLabel: "AB",
+                  ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+          child: Row( //Switch inputs
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              const Text("Input type"),
+              Expanded(child: Container()),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(5, 0, 10, 0),
+                child: labledSwitch(
+                  value: generalHandler.currentUser.advancedSettings.useTwoSignals,
+                  onChanged: (bool newValue){
+                    generalHandler.currentUser.advancedSettings.useTwoSignals = newValue;
+                    setState(() {});
+                  },
+                  trueLabel: "2",
+                  falseLabel: "1",
+                ),
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }

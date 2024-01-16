@@ -97,7 +97,7 @@ class CycleTriggerSelector extends StatelessWidget{
           const Spacer(),
           ElevatedButton(
               onPressed: () async{
-                if(!generalHandler.userAccess[1]){
+                if(generalHandler.userAccess < 1){
                  var currentTrigger = generalHandler.currentUser.triggerForAction("Next Grip");
                  var triggers = generalHandler.triggers;
                  final newTrigger = await showDialog(
@@ -303,7 +303,7 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
                     ),
                     onTap: () async{
                       //Change the grip
-                      if(!generalHandler.userAccess[1]){
+                      if(generalHandler.userAccess < 1){
                         var currentGrip = action.grip;
           
                         final newGrip = await showDialog(
