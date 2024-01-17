@@ -1,4 +1,5 @@
 import 'dart:ffi';
+import 'dart:math';
 
 import 'package:bionic_interface/general_handler.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,8 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 
 import 'package:provider/provider.dart';
+
+import '../user/user.dart';
 
 //TODO: this still needs editing
 
@@ -89,7 +92,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
                 padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
                 child: trainingCircleRow(),
               ),
-              AdvancedSettings(),
+              AdvancedSettingsScreen(),
             ],
           ),
         ),
@@ -387,18 +390,23 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   }
 }
 
-class AdvancedSettings extends StatefulWidget{
+class AdvancedSettingsScreen extends StatefulWidget{
+  const AdvancedSettingsScreen({super.key});
+
   @override
-  State<AdvancedSettings> createState() => _AdvancedSettingsState();
+  State<AdvancedSettingsScreen> createState() => _AdvancedSettingsState();
 }
 
-class _AdvancedSettingsState extends State<AdvancedSettings>{
+class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
 
   late GeneralHandler generalHandler;
+  late AdvancedSettings advancedSettings;
+
   @override
   void initState(){
     //todo: initialize this by actually importing the settings
     generalHandler = Provider.of<GeneralHandler>(context, listen: false);
+    advancedSettings = generalHandler.currentUser.advancedSettings;
   }
 
   @override
@@ -408,11 +416,10 @@ class _AdvancedSettingsState extends State<AdvancedSettings>{
       title: const Text("Advanced Settings"),
       controlAffinity: ListTileControlAffinity.leading,
       children: [
-        const Text("This is where the Advanced Settings will be located"),
-        const Text("!Under construction!"),
         inputOptions(),
+        advancedSettings.useTwoSignals? Container() :
+        advancedSettings.alternate? singleSiteOptionsAlternate() : singleSiteOptionsFastClose(),
         triggerOptions(),
-        singleSiteOptions(),
         notificationsOptions(),
         Padding(
           padding: const EdgeInsets.all(8.0),
@@ -432,7 +439,45 @@ class _AdvancedSettingsState extends State<AdvancedSettings>{
     );
   }
 
-  Widget labledSwitch({String trueLabel = "True", String falseLabel = "False", required bool value, required Function(bool)? onChanged}){
+  Widget advancedSettingSpacer({required String title, required Widget settingWidget}){
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+      child: Row( //Switch inputs
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Expanded(child: Text(title)),
+          Expanded(
+            child: settingWidget
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget advancedSettingSlider({required String title, required double value, required Function(double) onChanged,
+    double min = 0, double max = 4, String unit = "sec", int decimals = 1}){
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          SizedBox(
+              width: 120,
+              child: Text(title)),
+          Expanded(child: Slider(
+            value: value,
+            onChanged: onChanged,
+            min: min,
+            max: max,
+            divisions: ((max-min)*pow(10, decimals)).toInt(),
+            label: "${value.toStringAsFixed(decimals)} $unit",
+          )),
+        ],
+      ),
+    );
+  }
+
+  Widget labeledSwitch({String trueLabel = "True", String falseLabel = "False", required bool value, required Function(bool)? onChanged}){
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
@@ -452,77 +497,165 @@ class _AdvancedSettingsState extends State<AdvancedSettings>{
       title: const Text("Input Options"),
       controlAffinity: ListTileControlAffinity.leading,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-          child: Row( //Switch inputs
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const Text("Switch Inputs"),
-              Expanded(child: Container()),
-              labledSwitch(
-                  value: generalHandler.currentUser.advancedSettings.switchInputs,
-                  onChanged: (bool newValue){
-                    generalHandler.currentUser.advancedSettings.switchInputs = newValue;
-                    setState(() {});
-                  },
-                  trueLabel: "BA",
-                  falseLabel: "AB",
-                  ),
-            ],
-          ),
+        advancedSettingSpacer(
+            title: "Switch Inputs",
+            settingWidget: labeledSwitch(
+              value: advancedSettings.switchInputs,
+              onChanged: (bool newValue){
+                advancedSettings.switchInputs = newValue;
+                setState(() {});
+              },
+              trueLabel: "BA",
+              falseLabel: "AB",
+            ),
         ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
-          child: Row( //Switch inputs
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              const Text("Input type"),
-              Expanded(child: Container()),
-              Padding(
-                padding: const EdgeInsets.fromLTRB(5, 0, 10, 0),
-                child: labledSwitch(
-                  value: generalHandler.currentUser.advancedSettings.useTwoSignals,
-                  onChanged: (bool newValue){
-                    generalHandler.currentUser.advancedSettings.useTwoSignals = newValue;
-                    setState(() {});
-                  },
-                  trueLabel: "2",
-                  falseLabel: "1",
-                ),
-              ),
-            ],
-          ),
+        advancedSettingSpacer(
+            title: "Input Type",
+            settingWidget: labeledSwitch(
+              value: advancedSettings.useTwoSignals,
+              onChanged: (bool newValue){
+                advancedSettings.useTwoSignals = newValue;
+                setState(() {});
+              },
+              trueLabel: "2",
+              falseLabel: "1",
+            ),
         ),
       ],
     );
   }
 
   Widget triggerOptions(){
-    return const ExpansionTile(
-      title: Text("Trigger Options"),
+    return ExpansionTile(
+      title: const Text("Trigger Options"),
       controlAffinity: ListTileControlAffinity.leading,
       children: [
-        Text("Nothing here yet"),
+        advancedSettingSlider(
+            title: "Open Open Time",
+            value: advancedSettings.timeOpenOpen,
+            onChanged: (double newValue){
+              advancedSettings.timeOpenOpen = newValue;
+            },
+          min: 0.1,
+          max: 2,
+        ),
+        advancedSettingSlider(
+          title: "Hold Open Time",
+          value: advancedSettings.timeHoldOpen,
+          onChanged: (double newValue){
+            advancedSettings.timeHoldOpen = newValue;
+          },
+          min: 0.1,
+          max: 2,
+        ),
+        advancedSettingSlider(
+          title: "Co Con Time",
+          value: advancedSettings.timeCoCon,
+          onChanged: (double newValue){
+            advancedSettings.timeCoCon = newValue;
+          },
+          min: 0.05,
+          max: 0.25,
+          decimals: 2
+        ),
       ],
     );
   }
 
-  Widget singleSiteOptions(){
-    return const ExpansionTile(
-      title: Text("Single Site Options"),
+  Widget singleSiteOptionsAlternate(){
+    return ExpansionTile(
+      title: const Text("Single Site Options"),
       controlAffinity: ListTileControlAffinity.leading,
       children: [
-        Text("Nothing here yet"),
+        labeledSwitch(
+            value: advancedSettings.alternate,
+            onChanged: (bool newValue){
+              advancedSettings.alternate = newValue;
+              setState(() {});
+            },
+            trueLabel: "Alternating",
+            falseLabel: "Fast/Close"
+        ),
+        advancedSettingSlider(
+            title: "Alt Switch time",
+            value: advancedSettings.timeAltSwitch,
+            onChanged: (double newValue){
+              advancedSettings.timeAltSwitch = newValue;
+            },
+            min: 0.1,
+            max: 2,
+        ),
+      ],
+    );
+  }
+
+  Widget singleSiteOptionsFastClose(){
+    return ExpansionTile(
+      title: const Text("Single Site Options"),
+      controlAffinity: ListTileControlAffinity.leading,
+      children: [
+        labeledSwitch(
+            value: advancedSettings.alternate,
+            onChanged: (bool newValue){
+              advancedSettings.alternate = newValue;
+              setState(() {});
+            },
+            trueLabel: "Alternating",
+            falseLabel: "Fast/Close"
+        ),
+        advancedSettingSlider(
+          title: "Fast/Close time",
+          value: advancedSettings.timeFastClose,
+          onChanged: (double newValue){
+            advancedSettings.timeFastClose = newValue;
+          },
+          min: 0.1,
+          max: 2,
+        ),
+        advancedSettingSlider(
+          title: "Fast/Close Level",
+          value: advancedSettings.levelFastClose,
+          onChanged: (double newValue){
+            advancedSettings.levelFastClose = newValue;
+          },
+          min: 0.4,
+          max: 4,
+          unit: "V"
+        ),
+
       ],
     );
   }
 
   Widget notificationsOptions(){
-    return const ExpansionTile(
-      title: Text("Notifications"),
+    return ExpansionTile(
+      title: const Text("Notifications"),
       controlAffinity: ListTileControlAffinity.leading,
       children: [
-        Text("Nothing here yet"),
+        advancedSettingSpacer(
+          title: "Vibrate",
+          settingWidget: labeledSwitch(
+            value: generalHandler.currentUser.advancedSettings.vibrate,
+            onChanged: (bool newValue){
+              generalHandler.currentUser.advancedSettings.vibrate = newValue;
+              setState(() {});
+            },
+            trueLabel: "ON",
+            falseLabel: "OFF",
+          ),
+        ),
+        advancedSettingSpacer(
+          title: "Buzzer",
+          settingWidget: labeledSwitch(
+            value: generalHandler.currentUser.advancedSettings.buzzer,
+            onChanged: (bool newValue){
+              generalHandler.currentUser.advancedSettings.buzzer = newValue;
+              setState(() {});
+            },
+            trueLabel: "ON",
+            falseLabel: "OFF",
+          ),
+        ),
       ],
     );
   }
@@ -530,11 +663,13 @@ class _AdvancedSettingsState extends State<AdvancedSettings>{
 }
 
 class InputGains extends StatelessWidget{
+  const InputGains({super.key});
+
 
   @override
   Widget build(BuildContext context) {
     return ExpansionTile(
-      title: Text("Input Gains"),
+      title: const Text("Input Gains"),
       children: [
         Row(
           mainAxisAlignment: MainAxisAlignment.start,

@@ -33,7 +33,7 @@ Creates any necessary inputs for using the app without having a physical device 
 
 # Things that still need to be added:
 - [ ] have the grip settings pop up wrap to fit the number of items available
-- [ ] change the first index of the grip settings to a house icon so its clear thats the home 
+- [X] change the first index of the grip settings to a house icon so its clear thats the home 
 - [ ] Have the direct actions line up better with each other
 - [X] Ability to remove things from the grip settings listview
 - [ ] Popups for changing trigger settings ->  though this may be better to be in the emg page rather than grip settings?
