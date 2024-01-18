@@ -29,6 +29,7 @@ class _TriggerSettingsDialog extends State<TriggerSettingDialog>{
 
   @override
   void initState(){
+    super.initState();
     _action = widget.action;
     _currentTrigger = widget.currentTrigger;
     _gripTriggers = widget.gripTriggers;
@@ -105,6 +106,7 @@ class _TriggersList extends State<TriggersList>{
 
   @override
   void initState(){
+    super.initState();
     _currentTrigger = widget.currentTrigger;
     _gripTriggers = widget.gripTriggers;
   }

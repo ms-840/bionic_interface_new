@@ -15,7 +15,7 @@ class RouteGenerator{
       case '/plot':
         return MaterialPageRoute(builder: (_) => const DataPresentationPage());
       case '/grip':
-        return MaterialPageRoute(builder: (_) => const GripSettings2());
+        return MaterialPageRoute(builder: (_) => const GripSettings());
       case '/calibration':
         return MaterialPageRoute(builder: (_) => const HandCalibration());
       default:

@@ -213,7 +213,7 @@ class GeneralHandler extends ChangeNotifier{
     notifyListeners();
 
   }
-
+  //TODO: make this type of thing for the advanced settings as well?
   //#region ble commands
   void updateGripSettingsBle(String grip, String rule){
     //Todo: send the commands for updating grip settings

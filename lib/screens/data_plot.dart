@@ -1,4 +1,3 @@
-import 'dart:ffi';
 import 'dart:math';
 
 import 'package:bionic_interface/general_handler.dart';
@@ -11,8 +10,6 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 import '../user/user.dart';
-
-//TODO: this still needs editing
 
 class DataPresentationPage extends StatefulWidget{
   const DataPresentationPage({super.key});
@@ -67,7 +64,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
     return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
         appBar: AppBar(
-          title: const Text("EMG Signals"),
+          title: const Text("Inputs"),
           actions: [
             const SizedBox.shrink(),
             Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
@@ -81,6 +78,35 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               //doubleLineChartData,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const SizedBox(width: 10,),
+                    Text("A", style: TextStyle(fontSize: 40, color: emg1Color),),
+                    const SizedBox(width: 5,),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Max: ${generalHandler.getSignalSettings("Signal A Range").end.toStringAsFixed(1)} V"),
+                        Text("On: ${generalHandler.getSignalSettings("Signal A Range").start.toStringAsFixed(1)} V")
+                      ],
+                    ),
+                    Expanded(child: Container()),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text("Max: ${generalHandler.getSignalSettings("Signal B Range").end.toStringAsFixed(1)} V"),
+                        Text("On: ${generalHandler.getSignalSettings("Signal B Range").start.toStringAsFixed(1)} V")
+                      ],
+                    ),
+                    const SizedBox(width: 5,),
+                    Text("B", style: TextStyle(fontSize: 40, color: emg2Color),),
+                    const SizedBox(width: 10,),
+                  ],
+                ),
+              ), // A and B labels
               SizedBox(
                 height: 500,
                 child: Padding(
@@ -89,53 +115,14 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 20),
                 child: trainingCircleRow(),
               ),
-              AdvancedSettingsScreen(),
+              const InputGains(),
+              const AdvancedSettingsScreen(),
             ],
           ),
         ),
-
-        /*
-        floatingActionButton: PopupMenuButton<String>(
-          itemBuilder: (context) => [
-            PopupMenuItem(
-              value: "back",
-              onTap: (){
-                Navigator.pop(context);
-              },
-              child: const ListTile(
-                leading: Icon(Icons.arrow_back_ios_new),
-                title: Text("Back"),
-              ),
-            ),
-            PopupMenuItem(
-              value: "settings",
-              onTap: (){
-                openSettingsDialogue();
-              },
-              child: const ListTile(
-                leading: Icon(Icons.settings),
-                title: Text("Settings"),
-              ),
-            ),
-            PopupMenuItem(
-              value: "commands",
-              onTap: () async{
-                var settings = await Navigator.pushNamed(context,"/commands");
-                if(settings != null){
-                  Navigator.pop(context);
-                }
-              },
-              child: const ListTile(
-                leading: Icon(Icons.settings_remote),
-                title: Text("Configure Board"),
-              ),)
-          ],
-          icon: const Icon(Icons.arrow_drop_down),
-
-        )*/
     );
   }
 
@@ -206,10 +193,10 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
             borderData: FlBorderData(show: true),
             extraLinesData: ExtraLinesData(
               horizontalLines: [
-                HorizontalLine(y: rangeA.start, color: emg1Color),
-                HorizontalLine(y: rangeA.end, color: emg1Color),
-                HorizontalLine(y: rangeB.start, color: emg2Color),
-                HorizontalLine(y: rangeB.end, color: emg2Color),
+                HorizontalLine(y: rangeA.start, color: emg1Color, strokeWidth: 1),
+                HorizontalLine(y: rangeA.end, color: emg1Color, strokeWidth: 1),
+                HorizontalLine(y: rangeB.start, color: emg2Color, strokeWidth: 1),
+                HorizontalLine(y: rangeB.end, color: emg2Color, strokeWidth: 1),
               ]
             ),
             lineBarsData: [
@@ -274,8 +261,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   }
   Widget thresholdSlider({
     required double max,
-    required String sliderType})
-  {
+    required String sliderType}) {
     final range = generalHandler.getSignalSettings(sliderType);
     //print(range);
     return SliderTheme(
@@ -360,8 +346,8 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
       children: [
         Text(triggerName),
         Container(
-          width: 30,
-          height:  30,
+          width: 50,
+          height:  50,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: status == 2 ? pink : status == 1? blue : grey,
@@ -404,8 +390,9 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
 
   @override
   void initState(){
+    super.initState();
     //todo: initialize this by actually importing the settings
-    generalHandler = Provider.of<GeneralHandler>(context, listen: false);
+    generalHandler = Provider.of<GeneralHandler>(context, listen: true);
     advancedSettings = generalHandler.currentUser.advancedSettings;
   }
 
@@ -500,10 +487,9 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
         advancedSettingSpacer(
             title: "Switch Inputs",
             settingWidget: labeledSwitch(
-              value: advancedSettings.switchInputs,
+              value: generalHandler.getSignalSettings("Switch Signals"),
               onChanged: (bool newValue){
-                advancedSettings.switchInputs = newValue;
-                setState(() {});
+                generalHandler.updateSignalSettings(setting: "Switch Signals");
               },
               trueLabel: "BA",
               falseLabel: "AB",
@@ -666,36 +652,56 @@ class InputGains extends StatelessWidget{
   const InputGains({super.key});
 
 
+  Widget gainSelector({required String type, Color color = Colors.black, required double value, required Function(double) onChanged}){
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(15, 5, 15, 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(type, style: TextStyle(fontSize: 25, color: color),),
+          const SizedBox(width: 20,),
+          Text(value.toStringAsFixed(1)),
+          Expanded(
+            child: Slider(
+              activeColor: color,
+              value: value,
+              onChanged: onChanged
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    GeneralHandler generalHandler = Provider.of<GeneralHandler>(context, listen: true);
+    final colorA = Theme.of(context).colorScheme.secondary;
+    final colorB = Theme.of(context).colorScheme.primary;
+    var valueA = generalHandler.getSignalSettings("Signal A Gain");
+    var valueB = generalHandler.getSignalSettings("Signal B Gain");
     return ExpansionTile(
       title: const Text("Input Gains"),
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text("A"),
-            Slider(
-                value: 0,
-                onChanged: (double newValue){
-                  //TODO: fill this out
-                  print("incomplete input gains");
-                }
-            ),
-          ],
+        gainSelector(
+            type: "A",
+            value: valueA,
+            onChanged: (double newValue){
+              generalHandler.updateSignalSettings(
+                  setting: "Signal A Gain",
+                  primaryNewValue: newValue);
+            },
+            color: colorA
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          children: [
-            Text("B"),
-            Slider(
-                value: 0,
-                onChanged: (double newValue){
-                  //TODO: fill this out
-                  print("incomplete input gains");
-                }
-            ),
-          ],
+        gainSelector(
+            type: "B",
+            value: valueB,
+            onChanged: (double newValue){
+              generalHandler.updateSignalSettings(
+                  setting: "Signal B Gain",
+                  primaryNewValue: newValue);
+            },
+          color: colorB,
         ),
       ],
     );

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:bionic_interface/general_handler.dart';
 import 'package:bionic_interface/grip_trigger_action.dart';
@@ -29,6 +28,7 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
 
   @override
   void initState(){
+    super.initState();
     _action = widget.action;
     _currentGrip = widget.currentGrip;
     _grips = widget.grips;
@@ -50,18 +50,16 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [ 
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                children: [
-                  const SizedBox(height: 5,),
-                  GripList(
-                      currentGrip: _currentGrip,
-                      handGrips: _grips,
-                      changeCurrentGrip: changeSelectedGrip),
-                  const SizedBox(height: 5,),
-                  ]),
-              ),
+            SingleChildScrollView(
+              child: Column(
+              children: [
+                const SizedBox(height: 5,),
+                GripList(
+                    currentGrip: _currentGrip,
+                    handGrips: _grips,
+                    changeCurrentGrip: changeSelectedGrip),
+                const SizedBox(height: 5,),
+                ]),
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -109,6 +107,7 @@ class _GripList extends State<GripList>{
 
   @override
   void initState(){
+    super.initState();
     _currentGrip = widget.currentGrip;
     _handGrips = widget.handGrips;
   }

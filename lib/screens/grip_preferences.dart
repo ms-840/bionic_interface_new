@@ -7,8 +7,8 @@ import 'grip_preferences_auxiliary/grip_dialog.dart';
 import 'grip_preferences_auxiliary/trigger_dialog.dart';
 
 
-class GripSettings2 extends StatelessWidget{
-  const GripSettings2({super.key});
+class GripSettings extends StatelessWidget{
+  const GripSettings({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -202,6 +202,7 @@ class _ReorderableGripListState extends State<ReorderableGripList>{
 
   @override
   void initState(){
+    super.initState();
     _listType = widget.listType;
   }
 
@@ -404,11 +405,11 @@ class _DirectGripListState extends State<DirectGripList>{
     return Row(
       mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Text(grip.name),
-        const SizedBox(width: 5,),
         Image.asset(grip.assetLocation,
           fit: BoxFit.contain,
           height: 80,),
+        const SizedBox(width: 5,),
+        Text(grip.name),
       ],
     );
   }
@@ -439,15 +440,17 @@ class _DirectGripListState extends State<DirectGripList>{
               children: [
                 Text(action.triggerName),
                 //const SizedBox.expand(),
-                action.gripName != "None" ? gripRow(action.grip!) : Text(action.gripName),
+                action.gripName != "None" && action.gripName != "Next Grip" ? gripRow(action.grip!) :
+                action.gripName == "None"? Text(action.gripName, style: TextStyle(color: Theme.of(context).colorScheme.secondary),) : Text(action.gripName,)
                 //const SizedBox.shrink(),
-                action.trigger?.timeSetting != null? IconButton(
+                /*action.trigger?.timeSetting != null? IconButton(
                     onPressed: (){
 
                     },
                     padding: const EdgeInsets.all(5),
                     icon: const Icon(Icons.settings, size: 20,))
                     : Container(width: 40,),
+                 */
               ],
             ),
           ),

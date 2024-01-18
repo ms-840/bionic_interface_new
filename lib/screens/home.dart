@@ -39,14 +39,14 @@ class HomePage extends StatelessWidget{
               ElevatedButton(
                   onPressed: (){
                     //Todo this should only be available when connected + permissions are right
-                    Navigator.pushNamed(context, "/grip");
+                    Navigator.popAndPushNamed(context, "/grip");
                   },
                   child: const Text("To Settings"),
               ),
               ElevatedButton(
                 onPressed: (){
                   //Todo this should only be available when connected + permissions are right
-                  Navigator.pushNamed(context, "/plot");
+                  Navigator.popAndPushNamed(context, "/plot");
                 },
                 child: const Text("To Plot"),
               ),
