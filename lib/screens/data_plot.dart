@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 import '../user/user.dart';
 
 class DataPresentationPage extends StatefulWidget{
-  const DataPresentationPage({super.key});
+  const DataPresentationPage();
 
   @override
   State<DataPresentationPage> createState() => _DataPresentationPageState();
@@ -20,6 +20,8 @@ class DataPresentationPage extends StatefulWidget{
 
 
 class _DataPresentationPageState extends State<DataPresentationPage>{
+  final GlobalKey _globalKey = GlobalKey(debugLabel: "data_plot_screen");
+
   //Things to change
   final limitCount = 100;
 
@@ -64,6 +66,12 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
     return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
         appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: (){
+              Navigator.popAndPushNamed(context, "/home");
+            },
+          ),
           title: const Text("Inputs"),
           actions: [
             const SizedBox.shrink(),
@@ -119,7 +127,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
                 child: trainingCircleRow(),
               ),
               const InputGains(),
-              const AdvancedSettingsScreen(),
+              const AdvancedSettingsScreen(), //The problem is in here
             ],
           ),
         ),
@@ -263,7 +271,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
     required double max,
     required String sliderType}) {
     final range = generalHandler.getSignalSettings(sliderType);
-    //print(range);
+
     return SliderTheme(
       data: const SliderThemeData(
         minThumbSeparation: 0,
@@ -292,7 +300,6 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
                   secondaryNewValue: values.end
               );
             });
-            //print("New values: ${values.start}, ${values.end}");
           }
       ),
     );
@@ -300,7 +307,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   //#endregion
 
 
-  //#training Circle
+  //#region training Circle
   //TODO: these values should not exist
   bool show = true;
   var status0 = 0;
@@ -369,7 +376,6 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   @override
   void dispose() {
     //Uncomment for automatic data generation
-    //print("trying to dispose of state");
     dataHandler.cancelDataTransfer();
     dataHandler.disconnectBLE();
     super.dispose();
@@ -384,7 +390,6 @@ class AdvancedSettingsScreen extends StatefulWidget{
 }
 
 class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
-
   late GeneralHandler generalHandler;
   late AdvancedSettings advancedSettings;
 
@@ -392,16 +397,15 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
   void initState(){
     super.initState();
     //todo: initialize this by actually importing the settings
-    generalHandler = Provider.of<GeneralHandler>(context, listen: true);
-    advancedSettings = generalHandler.currentUser.advancedSettings;
   }
 
   @override
   Widget build(BuildContext context) {
-    // TODO: implement build
+    generalHandler = Provider.of<GeneralHandler>(context, listen: true); //this cant be in init state
+    advancedSettings = generalHandler.currentUser.advancedSettings;
     return ExpansionTile(
       title: const Text("Advanced Settings"),
-      controlAffinity: ListTileControlAffinity.leading,
+      //controlAffinity: ListTileControlAffinity.leading,
       children: [
         inputOptions(),
         advancedSettings.useTwoSignals? Container() :
@@ -516,6 +520,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
       title: const Text("Trigger Options"),
       controlAffinity: ListTileControlAffinity.leading,
       children: [
+        thumbToggling(),
         advancedSettingSlider(
             title: "Open Open Time",
             value: advancedSettings.timeOpenOpen,
@@ -547,6 +552,39 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
       ],
     );
   }
+  Widget thumbToggling(){
+    var generalHandler = context.watch<GeneralHandler>();
+
+    final MaterialStateProperty<Icon?> thumbIcon =
+    MaterialStateProperty.resolveWith<Icon?>(
+          (Set<MaterialState> states) {
+        if (states.contains(MaterialState.selected)) {
+          return const Icon(Icons.check);
+        }
+        return const Icon(Icons.close);
+      },
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: Row(
+        children: [
+          const Text("Use thumb tap toggling"),
+          const Spacer(),
+          Switch(
+            thumbIcon: thumbIcon,
+            value: generalHandler.useThumbToggling,
+            onChanged: (bool value) {
+              setState(() {
+                generalHandler.toggleThumbTapUse();
+              });
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+
 
   Widget singleSiteOptionsAlternate(){
     return ExpansionTile(
@@ -649,8 +687,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
 }
 
 class InputGains extends StatelessWidget{
-  const InputGains({super.key});
-
+  const InputGains();
 
   Widget gainSelector({required String type, Color color = Colors.black, required double value, required Function(double) onChanged}){
     return Padding(
