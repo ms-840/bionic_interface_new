@@ -15,6 +15,12 @@ class GripSettings extends StatelessWidget{
     var generalHandler = context.watch<GeneralHandler>();
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.home),
+          onPressed: (){
+            Navigator.popAndPushNamed(context, "/home");
+          },
+        ),
         title: const Text("Rebel Bionics"),
         actions: [
           const SizedBox.shrink(),
@@ -25,57 +31,15 @@ class GripSettings extends StatelessWidget{
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          const ThumbTapSwitch(),
+          //const ThumbTapSwitch(),
           //cycle trigger selector
           //const CycleTriggerSelector(),
-          const SizedBox(height: 10),
+          const SizedBox(height: 30),
           Expanded(child: generalHandler.useThumbToggling?
                const DoubleTypeList()
               : const SingleTypeList()
           ),
 
-        ],
-      ),
-    );
-  }
-
-}
-
-class ThumbTapSwitch extends StatefulWidget{
-  const ThumbTapSwitch({super.key});
-
-  @override
-  State<ThumbTapSwitch> createState() => _ThumbTapSwitchState();
-}
-class _ThumbTapSwitchState extends State<ThumbTapSwitch>{
-  final MaterialStateProperty<Icon?> thumbIcon =
-  MaterialStateProperty.resolveWith<Icon?>(
-        (Set<MaterialState> states) {
-      if (states.contains(MaterialState.selected)) {
-        return const Icon(Icons.check);
-      }
-      return const Icon(Icons.close);
-    },
-  );
-
-  @override
-  Widget build(BuildContext context){
-    var generalHandler = context.watch<GeneralHandler>();
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Row(
-        children: [
-          const Text("Use thumb tap toggling"),
-          const Spacer(),
-          Switch(
-            thumbIcon: thumbIcon,
-            value: generalHandler.useThumbToggling,
-            onChanged: (bool value) {
-              setState(() {
-                generalHandler.toggleThumbTapUse();
-              });
-            },
-          ),
         ],
       ),
     );

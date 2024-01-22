@@ -23,7 +23,11 @@ class HomePage extends StatelessWidget{
     return Scaffold(
       appBar: AppBar(
         title: const Text("Rebel Bionics"),
-        actions: [],
+        actions: [
+          const SizedBox.shrink(),
+          Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
+          const SizedBox(width: 10,)
+        ],
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
