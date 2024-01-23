@@ -12,7 +12,7 @@ import 'package:provider/provider.dart';
 import '../user/user.dart';
 
 class DataPresentationPage extends StatefulWidget{
-  const DataPresentationPage();
+  const DataPresentationPage({super.key});
 
   @override
   State<DataPresentationPage> createState() => _DataPresentationPageState();
@@ -313,15 +313,19 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
   var status0 = 0;
   var status1 = 1;
   var status2 = 2;
+
   Widget trainingCircleRow(){
     //TODO: this is not properly hooked up yet
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         // 3 circles to test the triggers
         // one button to reset
         //const Text("Trigger Training: "),
+        IconButton(
+            onPressed: (){},
+            icon: const Icon(Icons.info_outline)),
         trainingCircle("Hold Open", status0),
         trainingCircle("Open Open", status1),
         trainingCircle("Co Con", status2),
@@ -520,12 +524,25 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
       title: const Text("Trigger Options"),
       controlAffinity: ListTileControlAffinity.leading,
       children: [
-        thumbToggling(),
+        advancedSettingSpacer(
+            title: "Thumb Tap Toggling",
+            settingWidget: labeledSwitch(
+                value: generalHandler.useThumbToggling,
+              onChanged: (bool value) {
+                setState(() {
+                  generalHandler.toggleThumbTapUse();
+                });
+              },
+              trueLabel: "ON",
+              falseLabel: "OFF",
+            )
+        ),
         advancedSettingSlider(
             title: "Open Open Time",
             value: advancedSettings.timeOpenOpen,
             onChanged: (double newValue){
               advancedSettings.timeOpenOpen = newValue;
+              setState(() {});
             },
           min: 0.1,
           max: 2,
@@ -535,6 +552,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           value: advancedSettings.timeHoldOpen,
           onChanged: (double newValue){
             advancedSettings.timeHoldOpen = newValue;
+            setState(() {});
           },
           min: 0.1,
           max: 2,
@@ -544,43 +562,13 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           value: advancedSettings.timeCoCon,
           onChanged: (double newValue){
             advancedSettings.timeCoCon = newValue;
+            setState(() {});
           },
           min: 0.05,
           max: 0.25,
           decimals: 2
         ),
       ],
-    );
-  }
-  Widget thumbToggling(){
-    var generalHandler = context.watch<GeneralHandler>();
-
-    final MaterialStateProperty<Icon?> thumbIcon =
-    MaterialStateProperty.resolveWith<Icon?>(
-          (Set<MaterialState> states) {
-        if (states.contains(MaterialState.selected)) {
-          return const Icon(Icons.check);
-        }
-        return const Icon(Icons.close);
-      },
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: Row(
-        children: [
-          const Text("Use thumb tap toggling"),
-          const Spacer(),
-          Switch(
-            thumbIcon: thumbIcon,
-            value: generalHandler.useThumbToggling,
-            onChanged: (bool value) {
-              setState(() {
-                generalHandler.toggleThumbTapUse();
-              });
-            },
-          ),
-        ],
-      ),
     );
   }
 
@@ -686,8 +674,12 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
 
 }
 
+
+
+
+
 class InputGains extends StatelessWidget{
-  const InputGains();
+  const InputGains({super.key});
 
   Widget gainSelector({required String type, Color color = Colors.black, required double value, required Function(double) onChanged}){
     return Padding(

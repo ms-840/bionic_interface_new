@@ -30,15 +30,11 @@ class HomePage extends StatelessWidget{
         ],
       ),
       body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          ElevatedButton(
-              onPressed: (){
-                //This should open a pop up to see the nearby BLE device
-              },
-              child: const Text("BLE Status")),
+          bleStatusButtonCard(context),
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               ElevatedButton(
                   onPressed: (){
@@ -56,11 +52,65 @@ class HomePage extends StatelessWidget{
               ),
             ],
           ),
+          newUserButtonCard(context),
         ],
       ),
 
     );
   }
 
+  Widget bleStatusButtonCard(BuildContext context){
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+      child: Card(
+        clipBehavior: Clip.hardEdge,
+        child: ListTile(
+          leading: const Icon(Icons.bluetooth, color: Colors.white,),
+          title: const Text("Hand Status", style: TextStyle(color: Colors.white),),
+          splashColor: Theme.of(context).colorScheme.secondary,
+          tileColor: Theme.of(context).colorScheme.primary,
+          onTap: (){
+            Navigator.popAndPushNamed(context, "/ble");
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget toSettingsButtonCard(BuildContext context){
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+      child: Card(
+        clipBehavior: Clip.hardEdge,
+        child: ListTile(
+          leading: const Icon(Icons.front_hand, color: Colors.white,),
+          title: const Text("Hand Settings", style: TextStyle(color: Colors.white),),
+          splashColor: Theme.of(context).colorScheme.secondary,
+          tileColor: Theme.of(context).colorScheme.primary,
+          onTap: (){
+            Navigator.popAndPushNamed(context, "/grip");
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget newUserButtonCard(BuildContext context){
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
+      child: Card(
+        clipBehavior: Clip.hardEdge,
+        child: ListTile(
+          leading: const Icon(Icons.login, color: Colors.white,),
+          title: const Text("Login", style: TextStyle(color: Colors.white),),
+          splashColor: Theme.of(context).colorScheme.secondary,
+          tileColor: Theme.of(context).colorScheme.primary,
+          onTap: (){
+            Navigator.popAndPushNamed(context, "/newUser");
+          },
+        ),
+      ),
+    );
+  }
 
 }

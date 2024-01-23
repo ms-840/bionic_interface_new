@@ -4,6 +4,7 @@ import 'screens/data_plot.dart';
 import 'screens/grip_preferences.dart';
 import 'screens/hand_calibration.dart';
 import 'screens/new_user.dart';
+import 'screens/ble_status.dart';
 
 
 
@@ -18,6 +19,10 @@ class RouteGenerator{
         return MaterialPageRoute(builder: (_) => const GripSettings());
       case '/calibration':
         return MaterialPageRoute(builder: (_) => const HandCalibration());
+      case '/ble':
+        return MaterialPageRoute(builder: (_) => const BleStatusPage());
+      case '/newUser':
+        return MaterialPageRoute(builder: (_) => const NewUserPage());
       default:
         return _errorRoute();
     }

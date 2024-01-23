@@ -1,14 +1,13 @@
-//This page should be used to set up different users/profiles
 import 'package:flutter/material.dart';
 
-class NewUserPage extends StatefulWidget{
-  const NewUserPage({super.key});
+class BleStatusPage extends StatefulWidget{
+  const BleStatusPage({super.key});
 
   @override
-  State<NewUserPage> createState() => _NewUserPageState();
+  State<BleStatusPage> createState() => _BleStatusPageState();
 }
 
-class _NewUserPageState extends State<NewUserPage>{
+class _BleStatusPageState extends State<BleStatusPage>{
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +20,7 @@ class _NewUserPageState extends State<NewUserPage>{
             Navigator.popAndPushNamed(context, "/home");
           },
         ),
-        title: const Text("New User"),
+        title: const Text("Hand Status"),
         actions: [
           const SizedBox.shrink(),
           Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),

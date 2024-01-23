@@ -34,10 +34,12 @@ Creates any necessary inputs for using the app without having a physical device 
 # Things that still need to be added:
 - [X] have the grip settings pop up wrap to fit the number of items available
 - [X] change the first index of the grip settings to a house icon so its clear thats the home 
-- [ ] Possibly move the use thumbtoggling to the other setting setter screen
+- [X] Possibly move the use thumbtoggling to the other setting setter screen
+- [ ] Add the information pop up for the training circles
+- [ ] Move thumb toggling into the advanced settings class 
 - [X] Have the direct actions line up better with each other
 - [X] Ability to remove things from the grip settings listview
-- [ ] Add some sort of menu that takes you back to the home page even if the arrows are gone
+- [X] Add some sort of menu that takes you back to the home page even if the arrows are gone
 - [ ] Popups for changing trigger settings ->  though this may be better to be in the emg page rather than grip settings?
 - [ ] Adding ability to login + dealing with different account types 
 - [ ] Add a way to back up and restore the clinician version of the advanced settings 
