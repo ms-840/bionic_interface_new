@@ -51,15 +51,17 @@ class _GripSettingsDialog extends State<GripSettingDialog>{
           mainAxisSize: MainAxisSize.min,
           children: [ 
             SingleChildScrollView(
-              child: Column(
-              children: [
-                const SizedBox(height: 5,),
-                GripList(
-                    currentGrip: _currentGrip,
-                    handGrips: _grips,
-                    changeCurrentGrip: changeSelectedGrip),
-                const SizedBox(height: 5,),
-                ]),
+              child: ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: MediaQuery.of(context).size.height - 150),
+              child:
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(0, 0, 0, 5),
+                      child: GripList(
+                          currentGrip: _currentGrip,
+                          handGrips: _grips,
+                          changeCurrentGrip: changeSelectedGrip),
+                    ),
+                )
             ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -115,8 +117,8 @@ class _GripList extends State<GripList>{
   @override
   Widget build(BuildContext context){
     return ListView.builder(
-      physics: const NeverScrollableScrollPhysics(),
-      //scrollDirection: Axis.vertical,
+      //physics: const ,
+      scrollDirection: Axis.vertical,
       itemCount: _handGrips.length,
       shrinkWrap: true,
       itemBuilder: (BuildContext context, int index){
@@ -126,7 +128,9 @@ class _GripList extends State<GripList>{
           selected: handGrip == _currentGrip,
           //selectedColor: Theme.of(context).cardColor,
           //tileColor: ,
-          leading: Image.asset(_handGrips[handGrip]!.assetLocation, fit: BoxFit.contain, height: 120,), //this should be the relevant image
+          leading: handGrip == "None"? Icon(Icons.cancel_outlined, color: Theme.of(context).colorScheme.secondary, size: 45,):
+                    handGrip == "Next Grip"? Icon(Icons.arrow_forward, color: Theme.of(context).colorScheme.secondary, size: 45,) :
+                    Image.asset(_handGrips[handGrip]!.assetLocation, fit: BoxFit.contain, height: 120,), //this should be the relevant image
           visualDensity: const VisualDensity(horizontal: 0.0, vertical: 0.0),
           onTap: (){
             setState(() {

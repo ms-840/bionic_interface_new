@@ -44,6 +44,7 @@ Creates any necessary inputs for using the app without having a physical device 
 - [ ] Adding ability to login + dealing with different account types 
 - [ ] Add a way to back up and restore the clinician version of the advanced settings 
 - [ ] Figuring out best way to persist data between sessions (incl user data )
+- [ ] Make sure the data is saved to the persisting version every time a screen page is disposed and also when the general handler is disposed
 - [ ] Functionality of other features on emg signal page beyond just the slider 
 - [ ] All of the Bluetooth integration -> still needs the protocols from the firmware, i don't think those exist yet
 - [ ] Front page rehaul

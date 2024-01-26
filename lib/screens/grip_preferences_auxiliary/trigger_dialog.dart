@@ -51,12 +51,18 @@ class _TriggerSettingsDialog extends State<TriggerSettingDialog>{
           mainAxisAlignment: MainAxisAlignment.center,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const SizedBox(height: 5,),
-            TriggersList(
-                currentTrigger: _currentTrigger,
-                gripTriggers: _gripTriggers,
-                changeCurrentTrigger: changeSelectedTrigger),
-            const SizedBox(height: 5,),
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  const SizedBox(height: 5,),
+                  TriggersList(
+                      currentTrigger: _currentTrigger,
+                      gripTriggers: _gripTriggers,
+                      changeCurrentTrigger: changeSelectedTrigger),
+                  const SizedBox(height: 5,),
+                ],
+              ),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [

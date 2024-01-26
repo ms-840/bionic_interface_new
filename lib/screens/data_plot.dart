@@ -324,11 +324,16 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
         // one button to reset
         //const Text("Trigger Training: "),
         IconButton(
-            onPressed: (){},
+            onPressed: () async {
+              await showDialog(
+                context: context,
+                builder: (context) => trainingCircleInfo()
+              );
+            },
             icon: const Icon(Icons.info_outline)),
-        trainingCircle("Hold Open", status0),
-        trainingCircle("Open Open", status1),
-        trainingCircle("Co Con", status2),
+        trainingCircle(triggerName: "Hold Open", status: status0),
+        trainingCircle(triggerName: "Open Open", status: status1),
+        trainingCircle(triggerName: "Co Con", status: status2),
         IconButton(
             onPressed: (){
               //TODO: this should send message back to the ble class to clear the trigger statuses
@@ -349,13 +354,13 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
     );
   }
 
-  Widget trainingCircle(String triggerName, int status){
+  Widget trainingCircle({String triggerName = "", required int status}){
     var grey = const Color(0xFF7F7F7F);
     var pink = Theme.of(context).colorScheme.secondary;
     var blue = Theme.of(context).colorScheme.primary;
     return Column(
       children: [
-        Text(triggerName),
+        triggerName.isNotEmpty? Text(triggerName): Container(),
         Container(
           width: 50,
           height:  50,
@@ -365,6 +370,62 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
           ),
         ),
       ],
+    );
+  }
+
+  Dialog trainingCircleInfo(){
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(15.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Trigger Training Circles", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),),
+            const Text("These circles can be used to practice the triggers. To reset them, press the reset button to the right of the circles."),
+            const SizedBox(height: 5,),
+            const Text("The circles represent the following:"),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(25, 3, 30, 3),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const Text("Deactive Trigger"),
+                  Expanded(child: Container(),),
+                  trainingCircle(status: 0),
+                ],
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(25, 3, 30, 3),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Text("Active Trigger"),
+                    Expanded(child: Container(),),
+                    trainingCircle(status: 1),
+                  ],
+                ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(25, 3, 30, 3),
+              child: Row(
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    const Text("Successful Trigger"),
+                    Expanded(child: Container(),),
+                    trainingCircle(status: 2),
+                  ],
+              ),
+            ),
+            ElevatedButton(
+                onPressed: (){
+                  Navigator.pop(context);
+                },
+                child: const Text("Back"))
+          ],
+        ),
+
+      ),
     );
   }
 
@@ -673,10 +734,6 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
   }
 
 }
-
-
-
-
 
 class InputGains extends StatelessWidget{
   const InputGains({super.key});
