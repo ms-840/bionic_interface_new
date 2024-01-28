@@ -221,4 +221,10 @@ class GeneralHandler extends ChangeNotifier{
 
   //#endregion
 
+  @override
+  void dispose() {
+    super.dispose();
+    print("General handler disposed");
+  }
+
 }

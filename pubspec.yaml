@@ -43,6 +43,9 @@ dependencies:
   flutter_blue_plus: 1.19.2 #another package giving ble capabilities, 1.17.5
   permission_handler: ^10.4.3 #makes getting permissions easier
 
+  sqflite: ^2.3.0 #for data persistence
+  path: ^1.8.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -60,22 +63,22 @@ dev_dependencies:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path_android: "assets/images/logo_small.png"
-  image_path_ios: "assets/images/logo_small.png"
+  image_path_android: "assets/images/logo.png"
+  image_path_ios: "assets/images/logo.png"
   remove_alpha_ios: true
   background_color_ios: "#FFFFFF"
   web:
     generate: true
-    image_path: "assets/images/logo_small.png"
+    image_path: "assets/images/logo.png"
     background_color: "#FFFFFF"
     theme_color: "#FFFFFF"
     windows:
       generate: true
-      image_path: "assets/images/logo_small.png"
+      image_path: "assets/images/logo.png"
       icon_size: 48 # min:48, max:256, default: 48
     macos:
       generate: true
-      image_path: "assets/images/logo_small.png"
+      image_path: "assets/images/logo.png"
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

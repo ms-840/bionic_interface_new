@@ -52,7 +52,9 @@ class User{
     "Button Press": HandAction(trigger: Trigger(name: "Button Press",bleCommand: "4")),
   };
 
-  bool useThumbToggling = true;
+  bool get useThumbToggling {
+    return advancedSettings.useThumbTrigger;
+  }
   Map<String,double> thresholdValues = {};
   //this could later include settings dictionary
 
@@ -128,7 +130,7 @@ class User{
   }
 
   void toggleThumbTap(){
-    useThumbToggling = !useThumbToggling;
+    advancedSettings.useThumbTrigger = !useThumbToggling;
   }
 
   Map<String, HandAction> get opposedActions{
@@ -375,6 +377,7 @@ class AdvancedSettings{
   double timeOpenOpen = 1.0; //range 0.2 - 2s
   double timeHoldOpen = 1.0; //range  0.2 - 2s
   double timeCoCon = 0.05; // range 0.05-0.25 s
+  bool useThumbTrigger = false;
 
   //single site options
   bool alternate = false; //false = fast/close, true=alternate
