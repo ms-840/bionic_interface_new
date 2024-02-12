@@ -317,12 +317,13 @@ class SignalSettings {
   double signalBgain = 1;
 
   // i am not sure yet how this should be used but it exists
-  bool switchInputs = false;
-  void switchSignalOrder(){
-    switchInputs = !switchInputs;
-  }
+  //bool switchInputs = false;
+  //void switchSignalOrder(){
+    //switchInputs = !switchInputs;
+  //}
 
-  SignalSettings({this.signalAon = 1, this.signalAmax = 3, this.signalBon = 1, this.signalBmax = 3});
+  SignalSettings({this.signalAon = 1, this.signalAmax = 3, this.signalBon = 1,
+    this.signalBmax = 3, this.signalAgain = 1, this.signalBgain = 1});
 
   RangeValues get signalArange{
     return RangeValues(signalAon,signalAmax);
@@ -362,6 +363,23 @@ class AdvancedSettings{
   //this should contain all of the data and settings which would be considered "Advanced Settings"
   //I kind of just want to access the values directly rather than wiht other methods, it seems silly
 
+  AdvancedSettings({
+    this.switchInputs = false,
+    this.useTwoSignals = true,
+    this.inputGainA = 1.0,
+    this.inputGainB = 1.0,
+    this.timeOpenOpen = 1.0,
+    this.timeHoldOpen = 1.0,
+    this.timeCoCon = 0.05,
+    this.useThumbTrigger = true,
+    this.alternate = false,
+    this.timeAltSwitch = 1,
+    this.timeFastClose = 1,
+    this.levelFastClose = 1,
+    this.vibrate = true,
+    this.buzzer = true,
+  });
+
   //input options
   bool switchInputs = false;
   bool useTwoSignals = true;
@@ -377,7 +395,7 @@ class AdvancedSettings{
   double timeOpenOpen = 1.0; //range 0.2 - 2s
   double timeHoldOpen = 1.0; //range  0.2 - 2s
   double timeCoCon = 0.05; // range 0.05-0.25 s
-  bool useThumbTrigger = false;
+  bool useThumbTrigger = true;
 
   //single site options
   bool alternate = false; //false = fast/close, true=alternate

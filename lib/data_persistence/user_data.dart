@@ -2,7 +2,13 @@ import 'package:bionic_interface/user/user.dart';
 
 import '../grip_trigger_action.dart';
 
-class UserData{
+import 'dart:async';
+
+import 'package:flutter/widgets.dart';
+import 'package:path/path.dart';
+import 'package:sqflite/sqflite.dart';
+
+class UserDataSave{
   // general user data
   late int id;
   late String userName;
@@ -74,7 +80,7 @@ class UserData{
 
   //#endregion
 
-  //advanced settings
+  //#region advanced settings
   late int switchInputs;
   late int useTwoSignals;
   late double inputGainA;
@@ -93,7 +99,8 @@ class UserData{
   late int vibrate;
   late int buzzer;
 
-  void convertAdvancedSettingTo(AdvancedSettings advancedSettings){
+
+  void convertAdvancedSettingToSimple(AdvancedSettings advancedSettings){
     switchInputs = advancedSettings.switchInputs? 1:0;
     useTwoSignals = advancedSettings.useTwoSignals? 1:0;
     inputGainA = advancedSettings.inputGainA;
@@ -113,8 +120,31 @@ class UserData{
     buzzer = advancedSettings.buzzer? 1:0;
   }
 
+  AdvancedSettings convertSimpleToAdvancedSetting(){
+    return AdvancedSettings(
+      switchInputs: switchInputs == 1? true:false,
+      useTwoSignals: useTwoSignals == 1? true:false,
+      inputGainA: inputGainA,
+      inputGainB: inputGainB,
 
-  //signal settings
+      timeOpenOpen: timeOpenOpen,
+      timeHoldOpen: timeHoldOpen,
+      timeCoCon: timeCoCon,
+      useThumbTrigger: useThumbTrigger == 1? true:false,
+
+      alternate: alternate == 1? true:false,
+      timeAltSwitch: timeAltSwitch,
+      timeFastClose: timeFastClose,
+      levelFastClose: levelFastClose,
+
+      vibrate: vibrate == 1? true:false,
+      buzzer: buzzer == 1? true:false,
+    );
+  }
+
+  //#endregion
+
+  //#region signal settings
   late double signalAon;
   late double signalAmax;
   late double signalBon;
@@ -123,11 +153,27 @@ class UserData{
   late double signalAgain;
   late double signalBgain;
 
+  void convertSignalSettingsToSimple(SignalSettings signalSettings){
+    signalAon = signalSettings.signalAon;
+    signalAmax = signalSettings.signalAmax;
+    signalBon = signalSettings.signalBon;
+    signalBmax = signalSettings.signalBmax;
 
-  //functions
-  //convert from action to string
-  //convert from string to action
+    signalAgain = signalSettings.signalAgain;
+    signalBgain = signalSettings.signalBgain;
+  }
 
+  SignalSettings convertSimpleToSignalSettings(){
+    return SignalSettings(
+      signalAon: signalAon,
+      signalAmax: signalAmax,
+      signalBon: signalBon,
+      signalBmax: signalBmax,
 
+      signalAgain: signalAgain,
+      signalBgain: signalBgain,
+    );
+  }
 
+  //#endregion
 }
