@@ -1,12 +1,11 @@
 import 'package:bionic_interface/user/user.dart';
+import 'package:drift/drift.dart';
 
 import '../grip_trigger_action.dart';
 
 import 'dart:async';
-
-import 'package:flutter/widgets.dart';
 import 'package:path/path.dart';
-import 'package:sqflite/sqflite.dart';
+
 
 class UserDataSave{
   // general user data
@@ -176,4 +175,48 @@ class UserDataSave{
   }
 
   //#endregion
+}
+
+class UserDataEntity extends Table{
+  IntColumn get id => integer().autoIncrement()();
+  TextColumn get userName => text().named("user_name")();
+  TextColumn get name => text().named("name")();
+  TextColumn get password => text().named("password")();
+  TextColumn get email => text().named("email")();
+  TextColumn get accessType => text().named("accessType")();
+
+  //Grip data
+  TextColumn get combinedActions => text().named("combined_actions")();
+  TextColumn get opposedActions => text().named("opposed_actions")();
+  TextColumn get unopposedActions => text().named("unopposed_actions")();
+  TextColumn get directActions => text().named("direct_actions")();
+
+  //advanced settings
+  BoolColumn get switchInputs => boolean().named("switch_inputs")();
+  BoolColumn get useTwoSignals => boolean().named("use_two_signals")();
+  RealColumn get inputGainA => real().named("input_gain_a")();
+  RealColumn get inputGainB => real().named("input_gain_b")();
+
+  BoolColumn get useThumbTrigger => boolean().named("use_thumb_trigger")();
+  RealColumn get timeOpenOpen => real().named("time_open_open")();
+  RealColumn get timeHoldOpen => real().named("time_hold_open")();
+  RealColumn get timeCoCon => real().named("time_co_con")();
+
+
+  BoolColumn get alternate => boolean().named("alternate")();
+  RealColumn get timeAltSwitch => real().named("time_alt_switch")();
+  RealColumn get timeFastClose => real().named("time_fast_close")();
+  RealColumn get levelFastClose => real().named("level_fast_close")();
+
+  BoolColumn get vibrate => boolean().named("vibrate")();
+  BoolColumn get buzzer => boolean().named("buzzer")();
+
+  //signal settings
+  RealColumn get signalAon => real().named("signal_a_on")();
+  RealColumn get signalAmax => real().named("signal_a_max")();
+  RealColumn get signalBon => real().named("signal_b_on")();
+  RealColumn get signalBmax => real().named("signal_b_max")();
+
+  RealColumn get signalAgain => real().named("signal_a_gain")();
+  RealColumn get signalBgain => real().named("signal_b_gain")();
 }
