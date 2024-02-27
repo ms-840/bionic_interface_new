@@ -3,14 +3,22 @@
 
 import 'package:flutter/material.dart';
 import 'data_handling/ble_interface.dart';
+import 'data_persistence/database_interface.dart';
 import 'dart:async';
 import 'user/user.dart';
 import 'grip_trigger_action.dart';
+import 'package:flutter/widgets.dart';
+
+import 'package:flutter/widgets.dart';
+import 'package:path/path.dart';
 
 class GeneralHandler extends ChangeNotifier{
   late BleInterface bleInterface;
+  late DbInterface dbInterface;
 
-  GeneralHandler(this.bleInterface);
+  GeneralHandler(this.bleInterface){
+    dbInterface = DbInterface();
+  }
 
   //Keys and related ble codes
   final gripPatterns = {
@@ -185,7 +193,7 @@ class GeneralHandler extends ChangeNotifier{
       case 'Signal B Gain':
         return currentUser.signalSettings.signalBgain;
       case 'Switch Signals':
-        return currentUser.signalSettings.switchInputs;
+        return currentUser.advancedSettings.switchInputs;
     }
   }
 
@@ -208,7 +216,7 @@ class GeneralHandler extends ChangeNotifier{
       case 'Signal B Gain':
         currentUser.signalSettings.signalBgain = primaryNewValue;
       case 'Switch Signals':
-        currentUser.signalSettings.switchSignalOrder();
+        currentUser.advancedSettings.switchInputs = !currentUser.advancedSettings.switchInputs;
     }
     notifyListeners();
 
@@ -220,6 +228,29 @@ class GeneralHandler extends ChangeNotifier{
   }
 
   //#endregion
+
+  //#region SQlite database
+  void loadUserFromDB(BuildContext context, String username, String password) async{
+    var tempUser = await dbInterface.constructUserFromDb(context, username, password);
+    if(tempUser!=null){
+      currentUser = tempUser;
+    }
+    else{
+      print("User $username could not be loaded");
+    }
+  }
+
+  Future<bool> updateDb() async{
+    return await dbInterface.updateUserData(currentUser);
+  }
+
+  Future<List<String>> getAllSavedUsers() async{
+    return await dbInterface.getAllUserNames();
+  }
+
+
+  //#endregion
+
 
   @override
   void dispose() {

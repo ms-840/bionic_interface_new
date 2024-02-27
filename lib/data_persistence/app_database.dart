@@ -34,6 +34,10 @@ class AppDb extends _$AppDb{
       return await (select(userDataEntity)..where((tbl) => tbl.userName.equals(userName))).getSingle();
     }
 
+    Future<List<UserDataEntityData>> getAllUsers() async{
+      return await (select(userDataEntity)..orderBy([(t) => OrderingTerm(expression: t.userName)])).get();
+    }
+
     Future<bool> updateUserData(UserDataEntityCompanion entity) async {
       return await update(userDataEntity).replace(entity);
     }
@@ -46,4 +50,6 @@ class AppDb extends _$AppDb{
     Future<int> deleteUserData(int id) async{
       return await (delete(userDataEntity)..where((tbl) => tbl.id.equals(id))).go();
     }
+
+
 }

@@ -24,8 +24,17 @@ class DbInterface{
     return await _db.getUser(newUsername) == null;
   }
 
+  Future<List<String>> getAllUserNames() async{
+    final users = await _db.getAllUsers();
+    List<String> allUserNames = [];
+    for(var entry in users){
+      allUserNames.add(entry.userName);
+    }
+    return allUserNames;
+  }
 
-  Future<User?> constructUserFromDb(BuildContext context, String userName, String password) async{
+
+  Future <User?> constructUserFromDb(BuildContext context, String userName, String password) async{
     """ Returns an instance of User from the database. 
     Returns null if username and password do not match. 
     """;
