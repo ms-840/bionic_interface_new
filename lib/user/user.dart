@@ -9,15 +9,30 @@ import 'package:flutter/material.dart';
 
 class User{
   //constructor
-  User(this._userName);
+  User(this.userName);
 
-  late final String _userName;
+  User.fromDb({
+    required this.userName,
+    required this.password,
+    required this.name,
+    required this.email,
+    required this.accessType,
+
+    required this.combinedActions,
+    required this.unOpposedActions,
+    required this.directActions,
+
+    required this.advancedSettings,
+    required this.signalSettings,
+  });
+
+  late final String userName;
   String name = ""; //not sure if this is necessary
+  late String password;
+  String email = "";
 
   //todo: need to change access types to clinician, editor, viewer
-  String _accessType = "editor"; //options: viewer, editor, clinician
-
-  String get accessType{return _accessType;}
+  String accessType = "editor"; //options: viewer, editor, clinician
 
   SignalSettings signalSettings = SignalSettings();
   AdvancedSettings advancedSettings = AdvancedSettings();
@@ -58,6 +73,7 @@ class User{
   Map<String,double> thresholdValues = {};
   //this could later include settings dictionary
 
+  /*
   String get userName{
     return _userName;
   }
@@ -69,6 +85,8 @@ class User{
   set adminAccess(String accessType){
     _accessType = accessType;
   }
+
+   */
 
   void setCombinedAction({required String action, Grip? grip, Trigger? trigger}){
     combinedActions[action] = HandAction(grip: grip, trigger: trigger);
@@ -298,7 +316,7 @@ class User{
 class AnonymousUser extends User{
   //This is the user class to be used when no login has occurred
   AnonymousUser() : super(''){
-    _accessType = "viewer";
+    accessType = "viewer";
     //print("Anonymous User created");
   }
 

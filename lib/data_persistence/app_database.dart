@@ -24,4 +24,26 @@ class AppDb extends _$AppDb{
   @override
   int get schemaVersion => 1;
 
+
+    //TODO: change these to look for username and password combos
+    // basically make everything run on username
+    // also endure that i have a function to check if a username exists
+
+
+    Future<UserDataEntityData?> getUser(String userName) async{
+      return await (select(userDataEntity)..where((tbl) => tbl.userName.equals(userName))).getSingle();
+    }
+
+    Future<bool> updateUserData(UserDataEntityCompanion entity) async {
+      return await update(userDataEntity).replace(entity);
+    }
+
+    Future<int> insertNewUserData(UserDataEntityCompanion entity) async{
+      """Returns the index of the new entity value""";
+      return await into(userDataEntity).insert(entity);
+    }
+
+    Future<int> deleteUserData(int id) async{
+      return await (delete(userDataEntity)..where((tbl) => tbl.id.equals(id))).go();
+    }
 }

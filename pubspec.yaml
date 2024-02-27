@@ -43,8 +43,10 @@ dependencies:
   flutter_blue_plus: 1.19.2 #another package giving ble capabilities, 1.17.5
   permission_handler: ^10.4.3 #makes getting permissions easier
 
-  sqflite: ^2.3.0 #for data persistence
+  #sqflite: ^2.3.0 #for data persistence
   path: ^1.8.3
+  drift: ^2.15.0 #data persistence, this is an sqlite
+  path_provider: ^2.1.2
 
 dev_dependencies:
   flutter_test:
@@ -58,6 +60,8 @@ dev_dependencies:
   flutter_lints: ^2.0.0
 
   flutter_launcher_icons: ^0.13.1
+  drift_dev: ^2.15.0
+  build_runner: ^2.4.8
 
 
 flutter_launcher_icons:
