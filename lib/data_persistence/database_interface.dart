@@ -18,9 +18,8 @@ class DbInterface{
   //TODO: figure out good method to initialize and dispose of db
   //TODO: complete the class
 
+  /// Returns true if username is not in table, false otherwise
   Future<bool> checkUsernameAvailability(String newUsername) async{
-    """ Returns true if username is not in table, false otherwise """;
-    
     return await _db.getUser(newUsername) == null;
   }
 
@@ -33,11 +32,9 @@ class DbInterface{
     return allUserNames;
   }
 
-
+  ///Returns an instance of User from the database.
+  ///Returns null if username and password do not match.
   Future <User?> constructUserFromDb(BuildContext context, String userName, String password) async{
-    """ Returns an instance of User from the database. 
-    Returns null if username and password do not match. 
-    """;
     final generalHandler = Provider.of<GeneralHandler>(context, listen: false);
     final grips = generalHandler.gripPatterns;
     final triggers = generalHandler.triggers;
@@ -50,9 +47,9 @@ class DbInterface{
           name: userData.name,
           email: userData.email,
           accessType: userData.accessType,
-          combinedActions: convertStringToCombinedAction(grips, userData.combinedActions),
-          unOpposedActions: convertStringToUnOpposedAction(grips, userData.opposedActions, userData.unopposedActions),
-          directActions: convertStringToDirectAction(grips, triggers, userData.directActions),
+          combinedActions: _convertStringToCombinedAction(grips, userData.combinedActions),
+          unOpposedActions: _convertStringToUnOpposedAction(grips, userData.opposedActions, userData.unopposedActions),
+          directActions: _convertStringToDirectAction(grips, triggers, userData.directActions),
           advancedSettings: AdvancedSettings(
             switchInputs: userData.switchInputs,
             useTwoSignals: userData.useTwoSignals,
@@ -85,8 +82,8 @@ class DbInterface{
     return null;
   }
 
+  ///Update the UserData row with new data
   Future<bool> updateUserData(User user) async {
-    """ Update the UserData row with new data""";
     final newEntity = UserDataEntityCompanion(
       userName: Value(user.userName),
       password: Value(user.password),
@@ -95,10 +92,10 @@ class DbInterface{
       accessType: Value(user.accessType),
 
       //Grip Data
-      combinedActions: Value(convertCombinedActionToString(user.combinedActions)),
-      opposedActions: Value(convertOpposedActionToString(user.unOpposedActions)),
-      unopposedActions: Value(convertUnopposedActionToString(user.unOpposedActions)),
-      directActions: Value(convertDirectActionToString(user.directActions)),
+      combinedActions: Value(_convertCombinedActionToString(user.combinedActions)),
+      opposedActions: Value(_convertOpposedActionToString(user.unOpposedActions)),
+      unopposedActions: Value(_convertUnopposedActionToString(user.unOpposedActions)),
+      directActions: Value(_convertDirectActionToString(user.directActions)),
 
       //advanced settings
       switchInputs: Value(user.advancedSettings.switchInputs),
@@ -135,7 +132,7 @@ class DbInterface{
 
   //#region conversion functions
 
-  String convertCombinedActionToString(Map<String,HandAction> combinedActionsSetting){
+  String _convertCombinedActionToString(Map<String,HandAction> combinedActionsSetting){
     String combinedActions = "";
     for(var value in combinedActionsSetting.values){
       combinedActions += value.gripName;
@@ -144,7 +141,7 @@ class DbInterface{
     return combinedActions;
   }
 
-  String convertOpposedActionToString(Map<String,HandAction> unOpposedActionsSetting){
+  String _convertOpposedActionToString(Map<String,HandAction> unOpposedActionsSetting){
     String opposedActions = "";
     for(var entry in unOpposedActionsSetting.entries){
       if(!entry.key.contains("Unopposed")){
@@ -155,7 +152,7 @@ class DbInterface{
     return opposedActions;
   }
 
-  String convertUnopposedActionToString(Map<String,HandAction> unOpposedActionsSetting){
+  String _convertUnopposedActionToString(Map<String,HandAction> unOpposedActionsSetting){
     String unopposedActions = "";
     for(var entry in unOpposedActionsSetting.entries){
       if(entry.key.contains("Unopposed")){
@@ -166,7 +163,7 @@ class DbInterface{
     return unopposedActions;
   }
 
-  String convertDirectActionToString(Map<String, HandAction> directActionsSetting){
+  String _convertDirectActionToString(Map<String, HandAction> directActionsSetting){
     String directActions = "";
     for(var entry in directActionsSetting.entries){
       directActions += "${entry.key}:${entry.value.triggerName},";
@@ -175,14 +172,13 @@ class DbInterface{
   }
 
 
-  Map<String, HandAction> convertStringToUnOpposedAction(
+  ///This returns all of the actions in the right time
+  ///Specifically only returns the combined, opposed, and unopposed actions
+  Map<String, HandAction> _convertStringToUnOpposedAction(
       Map<String, Grip> grips,
       String opposedActions,
       String unopposedActions,){
-    """
-    This returns all of the actions in the right time
-    Specifically only returns the combined, opposed, and unopposed actions
-    """;
+
     final tempListOpposedActions = opposedActions.split(",");
     final tempListUnopposedActions = unopposedActions.split(",");
     final listOpposedActions = tempListOpposedActions.sublist(0, tempListOpposedActions.length-1);
@@ -200,7 +196,7 @@ class DbInterface{
     return unOpposedActionsMap;
   }
 
-  Map<String, HandAction> convertStringToCombinedAction(Map<String, Grip> grips, String combinedActions,){
+  Map<String, HandAction> _convertStringToCombinedAction(Map<String, Grip> grips, String combinedActions,){
     final tempListCombinedAction = combinedActions.split(",");
     // from the conversion, the last item in the string list is empty and must be removed
     final listCombinedAction = tempListCombinedAction.sublist(0,tempListCombinedAction.length-1);
@@ -212,7 +208,7 @@ class DbInterface{
   }
 
 
-  Map<String, HandAction> convertStringToDirectAction(Map<String, Grip> grips, Map<String, Trigger> triggers, String directActions){
+  Map<String, HandAction> _convertStringToDirectAction(Map<String, Grip> grips, Map<String, Trigger> triggers, String directActions){
     List<String> listDirectActions = directActions.split(",");
     Map<String, HandAction> directActionsMap = {};
     for(var action in listDirectActions.sublist(0,listDirectActions.length-1)){

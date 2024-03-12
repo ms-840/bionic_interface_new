@@ -106,7 +106,7 @@ class HomePage extends StatelessWidget{
           splashColor: Theme.of(context).colorScheme.secondary,
           tileColor: Theme.of(context).colorScheme.primary,
           onTap: (){
-            Navigator.popAndPushNamed(context, "/newUser");
+            Navigator.popAndPushNamed(context, "/selectAccount");
           },
         ),
       ),
