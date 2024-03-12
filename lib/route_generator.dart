@@ -1,3 +1,4 @@
+import 'package:bionic_interface/screens/select_user.dart';
 import 'package:flutter/material.dart';
 import 'screens/home.dart';
 import 'screens/data_plot.dart';
@@ -23,6 +24,8 @@ class RouteGenerator{
         return MaterialPageRoute(builder: (_) => const BleStatusPage());
       case '/newUser':
         return MaterialPageRoute(builder: (_) => const NewUserPage());
+      case '/selectAccount':
+        return MaterialPageRoute(builder: (_) => const SelectUser());
       default:
         return _errorRoute();
     }

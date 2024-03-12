@@ -132,13 +132,22 @@ class GeneralHandler extends ChangeNotifier{
   User currentUser = AnonymousUser();
 
 
-  void userLogIn(){
-    //TODO: implement
-    //currentUser = User()
+  ///Attempt to load data for a given username,
+  ///if username is not found the database then the previous User is kept
+  void userLogIn(BuildContext context, String username, {String password = ""}) async{
+    currentUser = await dbInterface.constructUserFromDb(context, username, password) ?? currentUser;
   }
 
+  ///A list of all usernames stored in the db
+  List<String> userAccounts = [];
+  ///Update the user accounts and notify listeners
+  void updateUserAccounts() async{
+    userAccounts = await dbInterface.getAllUserNames();
+    notifyListeners();
+  }
+
+  /// returns access as index from the list [viewer, editor, clinician]
   int get userAccess{
-    """ returns access in form [adminAccess, childLock]""";
     //options: viewer, editor, clinician
     switch (currentUser.accessType){
       case "clinician":
@@ -174,15 +183,13 @@ class GeneralHandler extends ChangeNotifier{
     notifyListeners();
   }
 
+  ///Available options:
+  /// - "Signal A Range"
+  /// - "Signal B Range"
+  /// - "Signal A Gain"
+  /// - "Signal B Gain"
+  /// - "Switch Signals"
   dynamic getSignalSettings(String setting){
-    """
-    Available options:
-    - "Signal A Range"
-    - "Signal B Range"
-    - "Signal A Gain"
-    - "Signal B Gain"
-    - "Switch Signals"
-    """;
     switch(setting){
       case 'Signal A Range':
         return currentUser.signalSettings.signalArange;
