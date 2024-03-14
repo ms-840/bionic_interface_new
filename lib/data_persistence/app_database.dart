@@ -42,8 +42,8 @@ class AppDb extends _$AppDb{
       return await update(userDataEntity).replace(entity);
     }
 
+    ///Returns the index of the new entity value
     Future<int> insertNewUserData(UserDataEntityCompanion entity) async{
-      """Returns the index of the new entity value""";
       return await into(userDataEntity).insert(entity);
     }
 

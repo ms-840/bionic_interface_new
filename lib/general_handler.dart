@@ -14,10 +14,10 @@ import 'package:path/path.dart';
 
 class GeneralHandler extends ChangeNotifier{
   late BleInterface bleInterface;
-  late DbInterface dbInterface;
+  late DbInterface _dbInterface;
 
   GeneralHandler(this.bleInterface){
-    dbInterface = DbInterface();
+    _dbInterface = DbInterface();
   }
 
   //Keys and related ble codes
@@ -132,19 +132,7 @@ class GeneralHandler extends ChangeNotifier{
   User currentUser = AnonymousUser();
 
 
-  ///Attempt to load data for a given username,
-  ///if username is not found the database then the previous User is kept
-  void userLogIn(BuildContext context, String username, {String password = ""}) async{
-    currentUser = await dbInterface.constructUserFromDb(context, username, password) ?? currentUser;
-  }
 
-  ///A list of all usernames stored in the db
-  List<String> userAccounts = [];
-  ///Update the user accounts and notify listeners
-  void updateUserAccounts() async{
-    userAccounts = await dbInterface.getAllUserNames();
-    notifyListeners();
-  }
 
   /// returns access as index from the list [viewer, editor, clinician]
   int get userAccess{
@@ -238,7 +226,7 @@ class GeneralHandler extends ChangeNotifier{
 
   //#region SQlite database
   void loadUserFromDB(BuildContext context, String username, String password) async{
-    var tempUser = await dbInterface.constructUserFromDb(context, username, password);
+    var tempUser = await _dbInterface.constructUserFromDb(context, username, password);
     if(tempUser!=null){
       currentUser = tempUser;
     }
@@ -248,13 +236,50 @@ class GeneralHandler extends ChangeNotifier{
   }
 
   Future<bool> updateDb() async{
-    return await dbInterface.updateUserData(currentUser);
+    return await _dbInterface.updateUserData(currentUser);
   }
 
   Future<List<String>> getAllSavedUsers() async{
-    return await dbInterface.getAllUserNames();
+    return await _dbInterface.getAllUserNames();
   }
 
+  ///Attempt to load data for a given username,
+  ///if username is not found the database then the previous User is kept
+  void userLogIn(BuildContext context, String username, {String password = ""}) async{
+    currentUser = await _dbInterface.constructUserFromDb(context, username, password) ?? currentUser;
+  }
+
+  Future<int> newUser({
+    required String username,
+    required bool saveCurrentSettings,
+    String name = "", String password = "", String email = ""}) async{
+    late User user ;
+    if(saveCurrentSettings){
+      user = User.copy(
+          userName: username,
+          copy: currentUser,
+          name: name,
+        password: password,
+        email: email,
+      );
+    }
+    else{
+      user = User(username);
+      user.name = name;
+      user.password = password;
+      user.email = email;
+    }
+
+    return await _dbInterface.newUserData(user);
+  }
+
+  ///A list of all usernames stored in the db
+  List<String> userAccounts = [];
+  ///Update the user accounts and notify listeners
+  void updateUserAccounts() async{
+    userAccounts = await _dbInterface.getAllUserNames();
+    notifyListeners();
+  }
 
   //#endregion
 

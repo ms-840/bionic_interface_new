@@ -26,13 +26,31 @@ class User{
     required this.signalSettings,
   });
 
+  User.copy({
+  required this.userName,
+  required User copy,
+    this.password = "",
+    this.name = "",
+    this.email = "",
+    this.accessType = "editor",
+  }){
+    //not bothering with copying the maps for now since only one profile should be active at once
+    combinedActions = copy.combinedActions;
+    unOpposedActions = copy.unOpposedActions;
+    directActions = copy.directActions;
+
+    advancedSettings = copy.advancedSettings;
+    signalSettings = copy.signalSettings;
+  }
+
   late final String userName;
   String name = ""; //not sure if this is necessary
-  late String password;
+  String password = " ";
   String email = "";
 
   //todo: need to change access types to clinician, editor, viewer
-  String accessType = "editor"; //options: viewer, editor, clinician
+  ///options: viewer, editor, clinician
+  String accessType = "editor";
 
   SignalSettings signalSettings = SignalSettings();
   AdvancedSettings advancedSettings = AdvancedSettings();

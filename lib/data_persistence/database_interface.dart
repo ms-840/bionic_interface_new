@@ -130,6 +130,51 @@ class DbInterface{
     return await _db.updateUserData(newEntity);
   }
 
+  ///Update the UserData row with new data
+  Future<int> newUserData(User user) async {
+    final newEntity = UserDataEntityCompanion(
+      userName: Value(user.userName),
+      password: Value(user.password),
+      name: Value(user.name),
+      email: Value(user.email),
+      accessType: Value(user.accessType),
+
+      //Grip Data
+      combinedActions: Value(_convertCombinedActionToString(user.combinedActions)),
+      opposedActions: Value(_convertOpposedActionToString(user.unOpposedActions)),
+      unopposedActions: Value(_convertUnopposedActionToString(user.unOpposedActions)),
+      directActions: Value(_convertDirectActionToString(user.directActions)),
+
+      //advanced settings
+      switchInputs: Value(user.advancedSettings.switchInputs),
+      useTwoSignals: Value(user.advancedSettings.useTwoSignals),
+      inputGainA: Value(user.advancedSettings.inputGainA),
+      inputGainB: Value(user.advancedSettings.inputGainB),
+
+      timeOpenOpen: Value(user.advancedSettings.timeOpenOpen),
+      timeHoldOpen: Value(user.advancedSettings.timeHoldOpen),
+      timeCoCon: Value(user.advancedSettings.timeCoCon),
+      useThumbTrigger: Value(user.advancedSettings.useThumbTrigger),
+
+      alternate: Value(user.advancedSettings.alternate),
+      timeAltSwitch: Value(user.advancedSettings.timeAltSwitch),
+      timeFastClose: Value(user.advancedSettings.timeFastClose),
+      levelFastClose: Value(user.advancedSettings.levelFastClose),
+
+      vibrate: Value(user.advancedSettings.vibrate),
+      buzzer: Value(user.advancedSettings.buzzer),
+
+      //Signal Settings
+      signalAon: Value(user.signalSettings.signalAon),
+      signalAmax: Value(user.signalSettings.signalAmax),
+      signalBon: Value(user.signalSettings.signalBon),
+      signalBmax: Value(user.signalSettings.signalBmax),
+
+      signalAgain: Value(user.signalSettings.signalAgain),
+      signalBgain: Value(user.signalSettings.signalBgain),
+    );
+    return await _db.insertNewUserData(newEntity);
+  }
   //#region conversion functions
 
   String _convertCombinedActionToString(Map<String,HandAction> combinedActionsSetting){
