@@ -61,16 +61,13 @@ class GeneralHandler extends ChangeNotifier{
     //"Thumb Tap":  Trigger(name: "Thumb Tap",   bleCommand: "6"), // not changeable by user
   }; //include a key for none
 
-  void getUnusedTriggers(){
 
-  }
-
+  ///Returns 
+  ///gripType can be:
+  /// - 'Opposed'
+  /// - 'Unopposed'
+  /// - 'Combined'
   Map<String, Grip> getUnusedGrips(String gripType){
-    """ gripType can be:
-        - 'Opposed'
-        - 'Unopposed'
-        - 'Combined'
-    """;
     late Map<String, Grip> unusedGrips;
     switch(gripType){
       case("Opposed"):
@@ -98,6 +95,10 @@ class GeneralHandler extends ChangeNotifier{
     return unusedGrips;
   }
 
+  /// add the specified grip from the specified list type. Available types:
+  /// - 'Opposed'
+  /// - 'Unopposed'
+  /// - 'Combined'
   void addGripsToUserList(String type){
     switch(type){
       case "Opposed":
@@ -117,6 +118,10 @@ class GeneralHandler extends ChangeNotifier{
     notifyListeners();
   }
 
+  /// removes the specified grip from the specified list type. Available types:
+  /// - "Opposed"
+  /// - "Unopposed"
+  /// - "Combined"
   void removeGripFromUserList(String type, String actionName){
     switch(type){
       case "Opposed":
@@ -130,9 +135,6 @@ class GeneralHandler extends ChangeNotifier{
   }
 
   User currentUser = AnonymousUser();
-
-
-
 
   /// returns access as index from the list [viewer, editor, clinician]
   int get userAccess{
@@ -192,15 +194,13 @@ class GeneralHandler extends ChangeNotifier{
     }
   }
 
+  ///Available options:
+  ///       - "Signal A Range"
+  ///       - "Signal B Range"
+  ///       - "Signal A Gain"
+  ///       - "Signal B Gain"
+  ///       - "Switch Signals"
   void updateSignalSettings({required String setting, double primaryNewValue = -1, double secondaryNewValue = -1}){
-    """
-    Available options:
-    - "Signal A Range"
-    - "Signal B Range"
-    - "Signal A Gain"
-    - "Signal B Gain"
-    - "Switch Signals"
-    """;
     switch(setting){
       case 'Signal A Range':
         currentUser.signalSettings.setSignalArange(on: primaryNewValue, max: secondaryNewValue);
@@ -249,6 +249,7 @@ class GeneralHandler extends ChangeNotifier{
     currentUser = await _dbInterface.constructUserFromDb(context, username, password) ?? currentUser;
   }
 
+  /// create a new user profile
   Future<int> newUser({
     required String username,
     required bool saveCurrentSettings,

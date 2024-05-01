@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "341582374312",
+    "project_id": "testing-rebel",
+    "storage_bucket": "testing-rebel.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:341582374312:android:da0dfe21087b783c05a99d",
+        "android_client_info": {
+          "package_name": "com.rebelbionics.bionic_interface"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDNKtdw2pqrU0lHVLl6jo7tIitULvtxnUs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -35,7 +35,7 @@ Creates any necessary inputs for using the app without having a physical device 
 - [X] have the grip settings pop up wrap to fit the number of items available
 - [X] change the first index of the grip settings to a house icon so its clear thats the home 
 - [X] Possibly move the use thumbtoggling to the other setting setter screen
-- [ ] Add the information pop up for the training circles
+- [X] Add the information pop up for the training circles
 - [ ] Move thumb toggling into the advanced settings class 
 - [X] Have the direct actions line up better with each other
 - [X] Ability to remove things from the grip settings listview
@@ -43,12 +43,13 @@ Creates any necessary inputs for using the app without having a physical device 
 - [ ] Popups for changing trigger settings ->  though this may be better to be in the emg page rather than grip settings?
 - [ ] Adding ability to login + dealing with different account types 
 - [ ] Add a way to back up and restore the clinician version of the advanced settings 
-- [X] Figuring out best way to persist data between sessions (incl user data )
-- [ ] Make sure a default user is in the db at the start 
+- [X] Figuring out best way to persist data between sessions (incl user data ) -> actually this should be handled by firebase 
+- [ ] Make sure a default user is in the db at the start -> this should be firebase
 - [ ] Make sure the data is saved to the persisting version every time a screen page is disposed and also when the general handler is disposed
-- [ ] Functionality of other features on emg signal page beyond just the slider 
+- [X] Functionality of other features on emg signal page beyond just the slider 
 - [ ] All of the Bluetooth integration -> still needs the protocols from the firmware, i don't think those exist yet
 - [ ] Front page rehaul
 - [ ] Make an advanced setting system in the general handler
+- [ ] Remove local sql storage (replace with firebase)
 
 

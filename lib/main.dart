@@ -1,3 +1,4 @@
+import 'package:bionic_interface/firebase_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'route_generator.dart';
@@ -32,6 +33,7 @@ class MainApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => BleInterface(),),
         ChangeNotifierProvider(create: (context) => DataHandler(Provider.of<BleInterface>(context, listen: false))),
         ChangeNotifierProvider(create: (context) => GeneralHandler(Provider.of<BleInterface>(context, listen: false))),
+        ChangeNotifierProvider(create: (context) => FirebaseHandler(),),
       ],
       child: MaterialApp(
         title: 'Bionic Interface',
