@@ -36,7 +36,7 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.2
 
-  provider: ^6.0.5
+  provider: ^6.1.2
   fl_chart: ^0.64.0
 
   flutter_reactive_ble: ^5.2.0 #gives BLE capability
@@ -45,12 +45,14 @@ dependencies:
 
   #sqflite: ^2.3.0 #for data persistence
   path: ^1.8.3
+  go_router: ^13.0.1 #for creating better page routing structures
   drift: ^2.15.0 #data persistence, this is an sqlite package
-  sqlite3_flutter_libs: ^0.5.0
+  #sqlite3_flutter_libs: ^0.5.0
   path_provider: ^2.1.2
-  firebase_core: ^2.27.0
+  firebase_core: ^2.30.1
   cloud_firestore: ^4.17.2
   firebase_auth: ^4.19.4
+  firebase_ui_auth: ^1.14.0
 
 dev_dependencies:
   flutter_test:

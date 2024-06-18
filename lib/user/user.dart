@@ -7,11 +7,11 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 
-class User{
+class RebelUser{
   //constructor
-  User(this.userName);
+  RebelUser(this.userName);
 
-  User.fromDb({
+  RebelUser.fromDb({
     required this.userName,
     required this.password,
     required this.name,
@@ -26,9 +26,9 @@ class User{
     required this.signalSettings,
   });
 
-  User.copy({
+  RebelUser.copy({
   required this.userName,
-  required User copy,
+  required RebelUser copy,
     this.password = "",
     this.name = "",
     this.email = "",
@@ -329,9 +329,103 @@ class User{
   }
 
 
+  //#region to/from String conversion functions
+
+  /// Returns all set [combinedActions] as a comma deliminated string in the correct order
+  String get combinedActionAsString{
+    String combinedActionsString = "";
+    for(var value in combinedActions.values){
+      combinedActionsString += value.gripName;
+      combinedActionsString += ",";
+    }
+    return combinedActionsString;
+  }
+
+  /// Returns all set [opposedActions] as a comma deliminated string in the correct order
+  String get opposedActionAsString{
+    String opposedActionsString = "";
+    for(var value in opposedActions.values){
+      opposedActionsString += value.gripName;
+      opposedActionsString += ",";
+    }
+    return opposedActionsString;
+  }
+
+  /// Returns all set [unopposedActions] as a comma deliminated string in the correct order
+  String get unopposedActionAsString{
+    String unopposedActionsString = "";
+    for(var value in unopposedActions.values){
+      unopposedActionsString += value.gripName;
+      unopposedActionsString += ",";
+    }
+    return unopposedActionsString;
+  }
+
+  /// Returns all set [unopposedActions] as a comma deliminated string in the correct order
+  /// with the format "key:triggerName,key2:triggerName2,..."
+  String  get directActionAsString{
+    String directActionsString = "";
+    for(var entry in directActions.entries){
+      directActionsString += "${entry.key}:${entry.value.triggerName},";
+    }
+    return directActionsString;
+  }
+
+
+  ///This returns all of the actions in the right time
+  ///Specifically only returns the combined, opposed, and unopposed actions
+  Map<String, HandAction>  convertStringToUnOpposedAction(
+      Map<String, Grip> grips,
+      String opposedActions,
+      String unopposedActions,){
+
+    final tempListOpposedActions = opposedActions.split(",");
+    final tempListUnopposedActions = unopposedActions.split(",");
+    final listOpposedActions = tempListOpposedActions.sublist(0, tempListOpposedActions.length-1);
+    final listUnopposedActions = tempListUnopposedActions.sublist(0,tempListUnopposedActions.length-1);
+
+    Map<String, HandAction> unOpposedActionsMap = {};
+
+    for(var (index, action) in listOpposedActions.indexed){
+      unOpposedActionsMap["Opposed Position ${index+1}"] = HandAction(grip: grips[action]);
+    }
+    for(var (index, action) in listUnopposedActions.indexed){
+      unOpposedActionsMap["Unopposed Position ${index+1}"] = HandAction(grip: grips[action]);
+    }
+
+    return unOpposedActionsMap;
+  }
+
+  Map<String, HandAction> convertStringToCombinedAction(Map<String, Grip> grips, String combinedActions,){
+    final tempListCombinedAction = combinedActions.split(",");
+    // from the conversion, the last item in the string list is empty and must be removed
+    final listCombinedAction = tempListCombinedAction.sublist(0,tempListCombinedAction.length-1);
+    Map<String, HandAction> combinedActionsMap = {};
+    for(var (index, action) in listCombinedAction.indexed){
+      combinedActionsMap["Position ${index+1}"] = HandAction(grip: grips[action]);
+    }
+    return combinedActionsMap;
+  }
+
+
+  Map<String, HandAction> convertStringToDirectAction(Map<String, Grip> grips, Map<String, Trigger> triggers, String directActions){
+    List<String> listDirectActions = directActions.split(",");
+    Map<String, HandAction> directActionsMap = {};
+    for(var action in listDirectActions.sublist(0,listDirectActions.length-1)){
+      var dAction = action.split(":");
+      directActionsMap[dAction[0]] = HandAction(
+        trigger: triggers[dAction[0]],
+        grip: grips[dAction[1]],
+      );
+    }
+    return directActionsMap;
+  }
+
+//#endregion
+
 }
 
-class AnonymousUser extends User{
+class AnonymousUser extends RebelUser{
   //This is the user class to be used when no login has occurred
   AnonymousUser() : super(''){
     accessType = "viewer";

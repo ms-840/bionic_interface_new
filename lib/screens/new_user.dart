@@ -2,6 +2,7 @@
 import 'package:bionic_interface/general_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 
 class NewUserPage extends StatefulWidget{
   const NewUserPage({super.key});
@@ -23,7 +24,43 @@ class _NewUserPageState extends State<NewUserPage>{
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return SignInScreen(
+      actions: [
+        ForgotPasswordAction((context, email) {
+          //This is taken from the codelab
+          final uri = Uri(
+            path: '/sign-in/forgot-password',
+            queryParameters: <String, String?>{
+              'email': email,
+            },
+          );
+          //context.push(uri.toString()); //TODO THIS NEEDS FIXED
+        }),
+        AuthStateChangeAction(((context, state) {
+          final user = switch (state) {
+            SignedIn state => state.user,
+            UserCreated state => state.credential.user,
+            _ => null
+          };
+          if (user == null) {
+            return;
+          }
+          if (state is UserCreated) {
+            user.updateDisplayName(user.email!.split('@')[0]);
+          }
+          if (!user.emailVerified) {
+            user.sendEmailVerification();
+            const snackBar = SnackBar(
+                content: Text(
+                    'Please check your email to verify your email address'));
+            ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          }
+          // context.pushReplacement('/'); //TODO THIS NEEDS REPLACEMENT
+        })),
+      ],
+    );
+      /*
+      Scaffold(
       appBar: AppBar(
         title: const Text("New User"),
         actions: [
@@ -86,5 +123,7 @@ class _NewUserPageState extends State<NewUserPage>{
         ),
       ),
     );
+
+       */
   }
 }

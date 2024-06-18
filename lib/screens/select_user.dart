@@ -1,6 +1,7 @@
 import 'package:provider/provider.dart';
 import 'package:bionic_interface/general_handler.dart';
 import 'package:flutter/material.dart';
+import 'package:bionic_interface/firebase_handler.dart';
 
 class SelectUser extends StatefulWidget {
   const SelectUser({super.key});
@@ -15,7 +16,8 @@ class _SelectUserState extends State<SelectUser>{
   @override
   void initState() {
     super.initState();
-
+    print(Provider.of<FirebaseHandler>(context, listen: false).loggedIn);
+    print(Provider.of<FirebaseHandler>(context, listen: false).currentUser);
   }
 
   @override

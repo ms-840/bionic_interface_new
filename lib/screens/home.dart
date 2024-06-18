@@ -1,6 +1,8 @@
 import 'package:bionic_interface/general_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:bionic_interface/firebase_handler.dart';
+import 'package:go_router/go_router.dart';
 //TODO: change this to a different screen
 // it should allow you to select and connect to a nearby hand and prompt you where to go?
 // maybe have ble connection be a thing that happens before, also need something to log in
@@ -8,15 +10,12 @@ import 'package:provider/provider.dart';
 class HomePage extends StatelessWidget{
   const HomePage({super.key});
 
-
   /*
   elements on this page:
     - show ble connection status (possibly in a corner?)
     - put up a pop up to connect to the correct device
     - navigate to other sections (only sections visible according to access)
    */
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -39,14 +38,16 @@ class HomePage extends StatelessWidget{
               ElevatedButton(
                   onPressed: (){
                     //Todo this should only be available when connected + permissions are right
-                    Navigator.popAndPushNamed(context, "/grip");
+                    //Navigator.popAndPushNamed(context, "/grip");
+                    context.go("/grip");
                   },
                   child: const Text("To Settings"),
               ),
               ElevatedButton(
                 onPressed: (){
                   //Todo this should only be available when connected + permissions are right
-                  Navigator.popAndPushNamed(context, "/plot");
+                  //Navigator.popAndPushNamed(context, "/plot");
+                  context.go("/plot");
                 },
                 child: const Text("To Plot"),
               ),
@@ -70,7 +71,8 @@ class HomePage extends StatelessWidget{
           splashColor: Theme.of(context).colorScheme.secondary,
           tileColor: Theme.of(context).colorScheme.primary,
           onTap: (){
-            Navigator.popAndPushNamed(context, "/ble");
+            //Navigator.popAndPushNamed(context, "/ble");
+            context.push("/ble");
           },
         ),
       ),
@@ -88,7 +90,8 @@ class HomePage extends StatelessWidget{
           splashColor: Theme.of(context).colorScheme.secondary,
           tileColor: Theme.of(context).colorScheme.primary,
           onTap: (){
-            Navigator.popAndPushNamed(context, "/grip");
+            //Navigator.popAndPushNamed(context, "/grip");
+            context.push("/grip");
           },
         ),
       ),
@@ -102,11 +105,16 @@ class HomePage extends StatelessWidget{
         clipBehavior: Clip.hardEdge,
         child: ListTile(
           leading: const Icon(Icons.login, color: Colors.white,),
-          title: const Text("Login", style: TextStyle(color: Colors.white),),
+          title:  Provider.of<FirebaseHandler>(context, listen: true).loggedIn?
+            const Text("View Profile", style: TextStyle(color: Colors.white))
+                : const Text("Login", style: TextStyle(color: Colors.white),),
           splashColor: Theme.of(context).colorScheme.secondary,
           tileColor: Theme.of(context).colorScheme.primary,
           onTap: (){
-            Navigator.popAndPushNamed(context, "/selectAccount");
+            //Navigator.popAndPushNamed(context, "/selectAccount");
+            print(Provider.of<FirebaseHandler>(context, listen: false).loggedIn);
+            Provider.of<FirebaseHandler>(context, listen: false).loggedIn?
+              context.go("/profile") : context.go("/sign-in");
           },
         ),
       ),

@@ -34,14 +34,14 @@ class DbInterface{
 
   ///Returns an instance of User from the database.
   ///Returns null if username and password do not match.
-  Future <User?> constructUserFromDb(BuildContext context, String userName, String password) async{
+  Future <RebelUser?> constructUserFromDb(BuildContext context, String userName, String password) async{
     final generalHandler = Provider.of<GeneralHandler>(context, listen: false);
     final grips = generalHandler.gripPatterns;
     final triggers = generalHandler.triggers;
     final userData = await _db.getUser(userName);
 
     if(userData!=null){
-      return User.fromDb(
+      return RebelUser.fromDb(
           userName: userData.userName,
           password: userData.password,
           name: userData.name,
@@ -83,7 +83,7 @@ class DbInterface{
   }
 
   ///Update the UserData row with new data
-  Future<bool> updateUserData(User user) async {
+  Future<bool> updateUserData(RebelUser user) async {
     final newEntity = UserDataEntityCompanion(
       userName: Value(user.userName),
       password: Value(user.password),
@@ -131,7 +131,7 @@ class DbInterface{
   }
 
   ///Update the UserData row with new data
-  Future<int> newUserData(User user) async {
+  Future<int> newUserData(RebelUser user) async {
     final newEntity = UserDataEntityCompanion(
       userName: Value(user.userName),
       password: Value(user.password),

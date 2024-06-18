@@ -1,7 +1,12 @@
+import 'package:bionic_interface/user/user.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart'
+    hide EmailAuthProvider, PhoneAuthProvider;
+import 'package:firebase_ui_auth/firebase_ui_auth.dart';
+import 'package:flutter/material.dart';
 
 /// This file (and contained class) should hold and deal with any communications with firebase
 ///including:
@@ -13,11 +18,27 @@ import 'package:firebase_auth/firebase_auth.dart';
 ///
 class FirebaseHandler extends ChangeNotifier{
 
+  FirebaseHandler(){
+    print("starting Firebase initialization");
+    init();
+  }
+
+  Future<void> init() async{
+    await initializeFirebase();
+    initializeAuthStatus();
+  }
 
   Future<void> initializeFirebase() async{
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+
+    FirebaseUIAuth.configureProviders([
+      EmailAuthProvider(),
+    ]);
+    print("Firebase initialized");
+    //If there was something that should always be subscribed to,
+    // here would be where to put it
   }
 
   //#region Authorization and User management
@@ -25,7 +46,8 @@ class FirebaseHandler extends ChangeNotifier{
   ///A bool to indicate if a user is signed in
   /// - true: a user is signed into the firebase account
   /// - false: no user is signed in
-  bool authStatus = false;
+  bool _loggedIn = false;
+  bool get loggedIn => _loggedIn;
 
   /// an instance of the current user?
   /// my current idea is that at the very least it can define if
@@ -37,21 +59,24 @@ class FirebaseHandler extends ChangeNotifier{
   /// starts a stream that checks authorization status
   void initializeAuthStatus() {
     //note that on native platforms (ie not web) firebase automatically persists authentication states
-
+    //ie i dont need to do anything to make it persist
     FirebaseAuth.instance
         .authStateChanges()
         .listen((User? user) {
           currentUser = user;
       if (user == null) {
         print('User is currently signed out!');
-        authStatus = false;
+        _loggedIn = false;
       } else {
         print('User is signed in!');
-        authStatus = true;
+        _loggedIn = true;
+        //Todo: sync data from db - or give the user the choice to sync settings from the db?
       }
+      notifyListeners();
     });
   }
 
+  ///NOTE: THIS IS UNUSED. logging in is handled by the sign in screen
   /// create new Firebase User using an email + password combination
   /// if the password is too weak or the email is already in use,
   /// firebase will return an error code.
@@ -77,10 +102,11 @@ class FirebaseHandler extends ChangeNotifier{
   ///should be used to link auth provides - not super useful at the moment but
   ///could be used to connect eg google signins to an email login user
   ///see https://firebase.google.com/docs/auth/flutter/account-linking
-  void linkAuthProvicersToUser(){
+  void linkAuthProvidersToUser(){
     //todo: still needs to be made
   }
 
+  ///NOTE: THIS IS UNUSED. logging in is handled by the sign in screen
   ///signs the user in using email and password
   void loginEmailPassword(String emailAddress, String password) async{
     try {
@@ -98,6 +124,7 @@ class FirebaseHandler extends ChangeNotifier{
     }
   }
 
+  /* // this bit is commented out for now, it would be best to first make sure i can get it to work properly
   /// sends the user a link with which they can log into the app
   /// see https://firebase.google.com/docs/auth/flutter/email-link-auth
   /// Benefit is that the users dont need passwords
@@ -142,11 +169,48 @@ class FirebaseHandler extends ChangeNotifier{
       }
     }
   }
-
+   */
   //#endregion
 
   //#region Firebase Database
   ///should contain methods for updating the database with set values
   /// or getting new updates from the database
+
+  Future<DocumentReference> updateUserDetails({String name = "", }){
+    if(!_loggedIn){
+      throw Exception('Must be logged in to update User Details');
+    }
+    return FirebaseFirestore.instance
+        .collection('userDetails')
+        .add(<String, dynamic>{
+      'name': name,
+      'userId': FirebaseAuth.instance.currentUser!.uid,
+    });
+  }
+
+  Future<DocumentReference> updateHandActions(RebelUser user){
+    if(!_loggedIn){
+      throw Exception('Must be logged in to update User Details');
+    }
+    return FirebaseFirestore.instance
+        .collection('userDetails')
+        .add(<String, dynamic>{
+      'userId': FirebaseAuth.instance.currentUser!.uid,
+      'combinedActions': user.combinedActionAsString,
+      'opposedActions': user.opposedActionAsString,
+      'unopposedActions': user.unopposedActionAsString,
+      'directActions' : user.directActionAsString,
+      //'advancedSetting' : , //TODO: figure out a good way to turn this into an object for firestore
+      //'signalSettings' : , //TODO: figure out a good way to turn this into an object for firestore
+    });
+  }
+
+  //TODO: in order:
+  // 1. test that the login and such works as it should <- IT DOES BUT THE PAGES NEED BETTER ROUTING
+  // 1.5 create a page that i can use to test the firebase Handler functions
+  // 2. ensure creating the objects works as it should
+  // 3. create functions to convert data from firebase to update user data
+  // 4. consider if there is a way to make the updates + downloads more data plan friendly?
+
   //#endregion
 }

@@ -8,6 +8,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/services.dart';
 
 import 'package:provider/provider.dart';
+import 'package:go_router/go_router.dart';
 
 import '../user/user.dart';
 
@@ -69,7 +70,7 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
           leading: IconButton(
             icon: const Icon(Icons.home),
             onPressed: (){
-              Navigator.popAndPushNamed(context, "/home");
+              context.go("/");
             },
           ),
           title: const Text("Inputs"),
@@ -485,7 +486,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
               const Text("Hand Calibration"),
               IconButton(
                   onPressed: (){
-                    Navigator.pushNamed(context, "/calibration");
+                    context.go("/calibration");
                   },
                   icon: const Icon(Icons.settings))
             ],

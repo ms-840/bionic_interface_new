@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class BleStatusPage extends StatefulWidget{
   const BleStatusPage({super.key});
@@ -17,7 +18,7 @@ class _BleStatusPageState extends State<BleStatusPage>{
         leading: IconButton(
           icon: const Icon(Icons.home),
           onPressed: (){
-            Navigator.popAndPushNamed(context, "/home");
+            context.go("/");
           },
         ),
         title: const Text("Hand Status"),

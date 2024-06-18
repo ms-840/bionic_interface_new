@@ -7,6 +7,7 @@ import 'data_handling/ble_interface.dart';
 import 'data_handling/data_handler.dart';
 import 'screens/home.dart';
 import 'general_handler.dart';
+import 'package:go_router/go_router.dart';
 
 void main() {
   runApp(const MainApp());
@@ -35,7 +36,7 @@ class MainApp extends StatelessWidget {
         ChangeNotifierProvider(create: (context) => GeneralHandler(Provider.of<BleInterface>(context, listen: false))),
         ChangeNotifierProvider(create: (context) => FirebaseHandler(),),
       ],
-      child: MaterialApp(
+      child: MaterialApp.router(
         title: 'Bionic Interface',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
@@ -48,10 +49,11 @@ class MainApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        initialRoute: '/home',
-        onGenerateRoute: RouteGenerator.generateRoute,
-        navigatorKey: navigatorKey,
-        home: const HomePage(),
+        routerConfig: router,
+        //initialRoute: '/home',
+        //onGenerateRoute: RouteGenerator.generateRoute,
+        //navigatorKey: navigatorKey,
+        //home: const HomePage(),
       ),
     );
   }

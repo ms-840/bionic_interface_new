@@ -5,6 +5,7 @@ import 'package:bionic_interface/general_handler.dart';
 import 'package:bionic_interface/grip_trigger_action.dart';
 import 'grip_preferences_auxiliary/grip_dialog.dart';
 import 'grip_preferences_auxiliary/trigger_dialog.dart';
+import 'package:go_router/go_router.dart';
 
 
 class GripSettings extends StatelessWidget{
@@ -18,7 +19,7 @@ class GripSettings extends StatelessWidget{
         leading: IconButton(
           icon: const Icon(Icons.home),
           onPressed: (){
-            Navigator.popAndPushNamed(context, "/home");
+            context.go("/");
           },
         ),
         title: const Text("Rebel Bionics"),

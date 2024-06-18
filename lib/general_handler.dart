@@ -18,6 +18,7 @@ class GeneralHandler extends ChangeNotifier{
 
   GeneralHandler(this.bleInterface){
     _dbInterface = DbInterface();
+    print("General Handler initialized");
   }
 
   //Keys and related ble codes
@@ -134,7 +135,7 @@ class GeneralHandler extends ChangeNotifier{
     notifyListeners();
   }
 
-  User currentUser = AnonymousUser();
+  RebelUser currentUser = AnonymousUser();
 
   /// returns access as index from the list [viewer, editor, clinician]
   int get userAccess{
@@ -254,9 +255,9 @@ class GeneralHandler extends ChangeNotifier{
     required String username,
     required bool saveCurrentSettings,
     String name = "", String password = "", String email = ""}) async{
-    late User user ;
+    late RebelUser user ;
     if(saveCurrentSettings){
-      user = User.copy(
+      user = RebelUser.copy(
           userName: username,
           copy: currentUser,
           name: name,
@@ -265,7 +266,7 @@ class GeneralHandler extends ChangeNotifier{
       );
     }
     else{
-      user = User(username);
+      user = RebelUser(username);
       user.name = name;
       user.password = password;
       user.email = email;
