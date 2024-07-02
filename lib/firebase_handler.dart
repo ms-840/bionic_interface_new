@@ -1,3 +1,4 @@
+import 'package:bionic_interface/general_handler.dart';
 import 'package:bionic_interface/user/user.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -7,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart'
     hide EmailAuthProvider, PhoneAuthProvider;
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 /// This file (and contained class) should hold and deal with any communications with firebase
 ///including:
@@ -176,26 +178,29 @@ class FirebaseHandler extends ChangeNotifier{
   ///should contain methods for updating the database with set values
   /// or getting new updates from the database
 
-  Future<DocumentReference> updateUserDetails({String name = "", }){
+  Future<void> updateUserDetails({String name = "", }){
     if(!_loggedIn){
       throw Exception('Must be logged in to update User Details');
     }
     return FirebaseFirestore.instance
-        .collection('userDetails')
-        .add(<String, dynamic>{
+        .collection('userDetails').doc(FirebaseAuth.instance.currentUser!.uid)
+        .set(<String, dynamic>{
       'name': name,
       'userId': FirebaseAuth.instance.currentUser!.uid,
     });
   }
 
-  Future<DocumentReference> updateHandActions(RebelUser user){
+  /// takes a user object and uses the data to update the online database
+  ///
+  Future<void> updateHandActions(RebelUser user){
     if(!_loggedIn){
       throw Exception('Must be logged in to update User Details');
     }
     return FirebaseFirestore.instance
-        .collection('userDetails')
-        .add(<String, dynamic>{
+        .collection('actionSettings').doc(FirebaseAuth.instance.currentUser!.uid)
+        .set(<String, dynamic>{
       'userId': FirebaseAuth.instance.currentUser!.uid,
+      'lastUpdated' : DateTime.timestamp(),
       'combinedActions': user.combinedActionAsString,
       'opposedActions': user.opposedActionAsString,
       'unopposedActions': user.unopposedActionAsString,
@@ -205,9 +210,62 @@ class FirebaseHandler extends ChangeNotifier{
     });
   }
 
+  Future<void> updateHandSettings(RebelUser user){
+    if(!_loggedIn){
+      throw Exception('Must be logged in to update User Details');
+    }
+    return FirebaseFirestore.instance
+        .collection('handSettings').doc(FirebaseAuth.instance.currentUser!.uid)
+        .set(<String, dynamic>{
+      'userId': FirebaseAuth.instance.currentUser!.uid,
+      'lastUpdated' : DateTime.timestamp(),
+      'advancedSettings' : user.advancedSettings.toString(),
+      'signalSettings' : user.signalSettings.toString(),
+    });
+  }
+
+  dynamic getHandSettings(){
+    if(!_loggedIn){
+      throw Exception('Must be logged in to update User Details');
+    }
+    return FirebaseFirestore.instance
+        .collection('actionSettings')
+        .doc(FirebaseAuth.instance.currentUser!.uid).get();
+  }
+
+  /// This retrieves the data from the database and updates the hand actions and hand settings
+  Future<void> syncWithOnlineDatabase(BuildContext context) async{
+    if(!_loggedIn){
+      throw Exception('Must be logged in to update User Details');
+    }
+    var generalHandler = Provider.of<GeneralHandler>(context, listen: false);
+    final handSettings = await FirebaseFirestore.instance
+        .collection('handSettings')
+        .doc(FirebaseAuth.instance.currentUser!.uid).get();
+    final actionSettings = await FirebaseFirestore.instance
+        .collection('actionSettings')
+        .doc(FirebaseAuth.instance.currentUser!.uid).get();
+
+    if(handSettings.exists && actionSettings.exists){
+      generalHandler.currentUser.setAllSettings(generalHandler,
+          newOpposedActions: actionSettings['opposedActions'],
+          newUnopposedActions: actionSettings['unopposedActions'],
+          newDirectActions: actionSettings['directActions'],
+          newSignalSettings: handSettings['signalSettings'],
+          newAdvancedSettings: handSettings['advancedSettings']);
+    }
+    else{
+      print("One or more fields were not present in your online profile, please contact us");
+    }
+
+  }
+
+
+
+
   //TODO: in order:
   // 1. test that the login and such works as it should <- IT DOES BUT THE PAGES NEED BETTER ROUTING
-  // 1.5 create a page that i can use to test the firebase Handler functions
+  // 1.5 create a page that i can use to test the firebase Handler functions <- done, its the test page, just needs some more of the thinfs
   // 2. ensure creating the objects works as it should
   // 3. create functions to convert data from firebase to update user data
   // 4. consider if there is a way to make the updates + downloads more data plan friendly?

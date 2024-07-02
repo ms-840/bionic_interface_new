@@ -4,6 +4,8 @@
 // im also not sure yet how to best make the user log in
 import 'package:bionic_interface/grip_trigger_action.dart';
 import 'dart:math';
+import 'package:provider/provider.dart';
+import 'package:bionic_interface/general_handler.dart';
 
 import 'package:flutter/material.dart';
 
@@ -328,101 +330,146 @@ class RebelUser{
     directActions[trigger.name] = HandAction(trigger: trigger, grip: grip);
   }
 
-
   //#region to/from String conversion functions
-
-  /// Returns all set [combinedActions] as a comma deliminated string in the correct order
-  String get combinedActionAsString{
-    String combinedActionsString = "";
-    for(var value in combinedActions.values){
-      combinedActionsString += value.gripName;
-      combinedActionsString += ",";
-    }
-    return combinedActionsString;
-  }
-
-  /// Returns all set [opposedActions] as a comma deliminated string in the correct order
-  String get opposedActionAsString{
-    String opposedActionsString = "";
-    for(var value in opposedActions.values){
-      opposedActionsString += value.gripName;
-      opposedActionsString += ",";
-    }
-    return opposedActionsString;
-  }
-
-  /// Returns all set [unopposedActions] as a comma deliminated string in the correct order
-  String get unopposedActionAsString{
-    String unopposedActionsString = "";
-    for(var value in unopposedActions.values){
-      unopposedActionsString += value.gripName;
-      unopposedActionsString += ",";
-    }
-    return unopposedActionsString;
-  }
-
-  /// Returns all set [unopposedActions] as a comma deliminated string in the correct order
-  /// with the format "key:triggerName,key2:triggerName2,..."
-  String  get directActionAsString{
-    String directActionsString = "";
-    for(var entry in directActions.entries){
-      directActionsString += "${entry.key}:${entry.value.triggerName},";
-    }
-    return directActionsString;
-  }
-
-
-  ///This returns all of the actions in the right time
-  ///Specifically only returns the combined, opposed, and unopposed actions
-  Map<String, HandAction>  convertStringToUnOpposedAction(
-      Map<String, Grip> grips,
-      String opposedActions,
-      String unopposedActions,){
-
-    final tempListOpposedActions = opposedActions.split(",");
-    final tempListUnopposedActions = unopposedActions.split(",");
-    final listOpposedActions = tempListOpposedActions.sublist(0, tempListOpposedActions.length-1);
-    final listUnopposedActions = tempListUnopposedActions.sublist(0,tempListUnopposedActions.length-1);
-
-    Map<String, HandAction> unOpposedActionsMap = {};
-
-    for(var (index, action) in listOpposedActions.indexed){
-      unOpposedActionsMap["Opposed Position ${index+1}"] = HandAction(grip: grips[action]);
-    }
-    for(var (index, action) in listUnopposedActions.indexed){
-      unOpposedActionsMap["Unopposed Position ${index+1}"] = HandAction(grip: grips[action]);
+    //#region convert to string
+    /// Returns all set [combinedActions] as a comma deliminated string in the correct order
+    String get combinedActionAsString{
+      String combinedActionsString = "";
+      for(var value in combinedActions.values){
+        combinedActionsString += value.gripName;
+        combinedActionsString += ",";
+      }
+      return combinedActionsString;
     }
 
-    return unOpposedActionsMap;
-  }
-
-  Map<String, HandAction> convertStringToCombinedAction(Map<String, Grip> grips, String combinedActions,){
-    final tempListCombinedAction = combinedActions.split(",");
-    // from the conversion, the last item in the string list is empty and must be removed
-    final listCombinedAction = tempListCombinedAction.sublist(0,tempListCombinedAction.length-1);
-    Map<String, HandAction> combinedActionsMap = {};
-    for(var (index, action) in listCombinedAction.indexed){
-      combinedActionsMap["Position ${index+1}"] = HandAction(grip: grips[action]);
+    /// Returns all set [opposedActions] as a comma deliminated string in the correct order
+    String get opposedActionAsString{
+      String opposedActionsString = "";
+      for(var value in opposedActions.values){
+        opposedActionsString += value.gripName;
+        opposedActionsString += ",";
+      }
+      return opposedActionsString;
     }
-    return combinedActionsMap;
-  }
 
+    /// Returns all set [unopposedActions] as a comma deliminated string in the correct order
+    String get unopposedActionAsString{
+      String unopposedActionsString = "";
+      for(var value in unopposedActions.values){
+        unopposedActionsString += value.gripName;
+        unopposedActionsString += ",";
+      }
+      return unopposedActionsString;
+    }
 
-  Map<String, HandAction> convertStringToDirectAction(Map<String, Grip> grips, Map<String, Trigger> triggers, String directActions){
-    List<String> listDirectActions = directActions.split(",");
-    Map<String, HandAction> directActionsMap = {};
-    for(var action in listDirectActions.sublist(0,listDirectActions.length-1)){
-      var dAction = action.split(":");
-      directActionsMap[dAction[0]] = HandAction(
-        trigger: triggers[dAction[0]],
-        grip: grips[dAction[1]],
+    /// Returns all set [unopposedActions] as a comma deliminated string in the correct order
+    /// with the format "key:gripName,key2:gripName2,..."
+    String  get directActionAsString{
+      String directActionsString = "";
+      for(var entry in directActions.entries){
+        directActionsString += "${entry.key}:${entry.value.gripName},";
+      }
+      return directActionsString;
+    }
+
+    /// Returns all values held in the signal Settings as a
+    Map<String,double> get signalSettingsAsMap{
+      Map<String,double> signalSettingMap = {};
+      signalSettingMap["signalAon"] = signalSettings.signalAon;
+      signalSettingMap["signalAmax"] = signalSettings.signalAmax;
+      signalSettingMap["signalBon"] = signalSettings.signalBon;
+      signalSettingMap["signalBmax"] = signalSettings.signalBmax;
+      signalSettingMap["signalAgain"] = signalSettings.signalAgain;
+      signalSettingMap["signalBgain"] = signalSettings.signalBgain;
+
+      return signalSettingMap;
+    }
+    //#endregion
+    //#region convert to Flutter objects
+    ///This returns all of the actions in the right time
+    ///Specifically only returns the combined, opposed, and unopposed actions
+    Map<String, HandAction>  convertStringToUnOpposedAction(
+        Map<String, Grip> grips,
+        String opposedActions,
+        String unopposedActions,){
+
+      final tempListOpposedActions = opposedActions.split(",");
+      final tempListUnopposedActions = unopposedActions.split(",");
+      final listOpposedActions = tempListOpposedActions.sublist(0, tempListOpposedActions.length-1);
+      final listUnopposedActions = tempListUnopposedActions.sublist(0,tempListUnopposedActions.length-1);
+
+      Map<String, HandAction> unOpposedActionsMap = {};
+
+      for(var (index, action) in listOpposedActions.indexed){
+        unOpposedActionsMap["Opposed Position ${index+1}"] = HandAction(grip: grips[action]);
+      }
+      for(var (index, action) in listUnopposedActions.indexed){
+        unOpposedActionsMap["Unopposed Position ${index+1}"] = HandAction(grip: grips[action]);
+      }
+
+      return unOpposedActionsMap;
+    }
+
+    Map<String, HandAction> convertStringToCombinedAction(Map<String, Grip> grips, String combinedActions,){
+      final tempListCombinedAction = combinedActions.split(",");
+      // from the conversion, the last item in the string list is empty and must be removed
+      final listCombinedAction = tempListCombinedAction.sublist(0,tempListCombinedAction.length-1);
+      Map<String, HandAction> combinedActionsMap = {};
+      for(var (index, action) in listCombinedAction.indexed){
+        combinedActionsMap["Position ${index+1}"] = HandAction(grip: grips[action]);
+      }
+      return combinedActionsMap;
+    }
+
+    Map<String, HandAction> convertStringToDirectAction(Map<String, Grip> grips, Map<String, Trigger> triggers, String directActions){
+      List<String> listDirectActions = directActions.split(",");
+      Map<String, HandAction> directActionsMap = {};
+      for(var action in listDirectActions.sublist(0,listDirectActions.length-1)){
+        var dAction = action.split(":");
+        directActionsMap[dAction[0]] = HandAction(
+          trigger: triggers[dAction[0]],
+          grip: grips[dAction[1]],
+        );
+      }
+      return directActionsMap;
+    }
+
+    SignalSettings signalSettingsFromMap(Map<String,double> signalSettingsMap){
+      return SignalSettings(
+          signalAon: signalSettingsMap["signalAon"]!,
+          signalAmax: signalSettingsMap["signalAmax"]!,
+          signalBon: signalSettingsMap["signalBon"]!,
+          signalBmax: signalSettingsMap["signalBmax"]!,
       );
     }
-    return directActionsMap;
+    //#endregion
+  //#endregion
+
+  ///Sets the following fields:
+  /// - [unOpposedActions]
+  /// - [combinedActions]
+  /// - [directActions]
+  /// - [signalSettings]
+  /// - [advancedSettings]
+  ///
+  /// All new values should be given as strings, this method will deal with converting them to the relevant objects.
+  ///
+  /// This should primarily be used when syncing values from the firebase firestore
+  void setAllSettings(GeneralHandler generalHandler,{
+    required String newOpposedActions,
+    required String newUnopposedActions,
+    required String newDirectActions,
+    required String newSignalSettings,
+    required String newAdvancedSettings,
+  }){
+
+    unOpposedActions = convertStringToUnOpposedAction(
+        generalHandler.gripPatterns, newOpposedActions, newUnopposedActions);
+    directActions = convertStringToDirectAction(
+        generalHandler.gripPatterns, generalHandler.triggers, newDirectActions);
+    signalSettings = SignalSettings.fromString(newSignalSettings);
+    advancedSettings = AdvancedSettings.fromString(newAdvancedSettings);
   }
-
-//#endregion
-
 }
 
 class AnonymousUser extends RebelUser{
@@ -446,14 +493,31 @@ class SignalSettings {
   double signalAgain = 1;
   double signalBgain = 1;
 
-  // i am not sure yet how this should be used but it exists
-  //bool switchInputs = false;
-  //void switchSignalOrder(){
-    //switchInputs = !switchInputs;
-  //}
-
   SignalSettings({this.signalAon = 1, this.signalAmax = 3, this.signalBon = 1,
     this.signalBmax = 3, this.signalAgain = 1, this.signalBgain = 1});
+
+  /// This can use a string formatted like a dictionary,
+  /// like you would get from the toString() method for the class
+  SignalSettings.fromString(String settingString){
+    final variables = settingString.split(",");
+    for(var entry in variables){
+      var variable = entry.split(":")[0];
+      switch (variable[0]){
+        case "signalAon":
+          signalAon = double.parse(variable[1]);
+        case "signalAmax":
+          signalAmax = double.parse(variable[1]);
+        case "signalBon":
+          signalBon = double.parse(variable[1]);
+        case "signalBmax":
+          signalBmax = double.parse(variable[1]);
+        case "signalAgain":
+          signalAgain = double.parse(variable[1]);
+        case "signalBgain":
+          signalBgain = double.parse(variable[1]);
+      }
+    }
+  }
 
   RangeValues get signalArange{
     return RangeValues(signalAon,signalAmax);
@@ -487,6 +551,12 @@ class SignalSettings {
       signalBmax = max;
     }
   }
+
+  @override
+  String toString() {
+    return "signalAOn:$signalAon,signalAmax:$signalAmax,signalBon:$signalBon,signalBmax:$signalBmax,signalAgain:$signalAgain,signalBgain:$signalBgain";
+  }
+
 }
 
 class AdvancedSettings{
@@ -509,6 +579,45 @@ class AdvancedSettings{
     this.vibrate = true,
     this.buzzer = true,
   });
+
+  ///This constructs an advanced settings object from a string formatted like a dictionary,
+  ///specifically the one that is made from the toString() method of this class
+  AdvancedSettings.fromString(String settingString){
+    final variables = settingString.split(",");
+    for(var entry in variables){
+      var variable = entry.split(":")[0];
+      switch (variable[0]){
+        case "switchInputs":
+          switchInputs = variable[1] == "true";
+        case "useTwoSignals":
+          useTwoSignals = variable[1] == "true";
+        case "inputGainA":
+          inputGainA = double.parse(variable[1]);
+        case "inputGainB":
+          inputGainB = double.parse(variable[1]);
+        case "timeOpenOpen":
+          timeOpenOpen = double.parse(variable[1]);
+        case "timeHoldOpen":
+          timeHoldOpen = double.parse(variable[1]);
+        case "timeCoCon":
+          timeCoCon = double.parse(variable[1]);
+        case "useThumbTrigger":
+          useThumbTrigger = variable[1] == "true";
+        case "alternate":
+          alternate = variable[1] == "true";
+        case "timeAltSwitch":
+          timeAltSwitch = double.parse(variable[1]);
+        case "timeFastClose":
+          timeFastClose = double.parse(variable[1]);
+        case "levelFastClose":
+          levelFastClose = double.parse(variable[1]);
+        case "vibrate":
+          vibrate = variable[1] == "true";
+        case "buzzer":
+          buzzer = variable[1] == "true";
+        }
+      }
+  }
 
   //input options
   bool switchInputs = false;
@@ -539,5 +648,22 @@ class AdvancedSettings{
 
   List<bool> get notifications{
     return [vibrate, buzzer];
+  }
+
+  @override
+  String toString(){
+    return "switchInputs:$switchInputs,"
+           "useTwoSignals:$useTwoSignals,"
+           "inputGainA:$inputGainA,"
+           "timeOpenOpen:$timeOpenOpen,"
+           "timeHoldOpen:$timeHoldOpen,"
+           "timeCoCon:$timeCoCon,"
+           "useThumbTrigger:$useThumbTrigger,"
+           "alternate:$alternate,"
+           "timeAltSwitch:$timeAltSwitch,"
+           "timeFastClose:$timeFastClose,"
+           "levelFastClose:$levelFastClose,"
+           "vibrate:$vibrate,"
+           "buzzer:$buzzer";
   }
 }
