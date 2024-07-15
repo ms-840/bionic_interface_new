@@ -8,6 +8,7 @@ import 'screens/hand_calibration.dart';
 import 'screens/new_user.dart';
 import 'screens/ble_status.dart';
 import 'screens/test_screen.dart';
+import 'screens/direct_grip_selection.dart';
 import 'package:go_router/go_router.dart';
 
 
@@ -141,6 +142,10 @@ final router = GoRouter(
           GoRoute(
             path: 'ble',
             builder: (context, state) => const BleStatusPage(),
+          ),
+          GoRoute(
+            path: 'selectGrip',
+            builder: (context, state) => const GripSelector(),
           ),
           GoRoute(
               path: 'test',

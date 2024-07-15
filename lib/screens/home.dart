@@ -54,6 +54,12 @@ class HomePage extends StatelessWidget{
             ],
           ),
           newUserButtonCard(context),
+          ElevatedButton(
+              onPressed: (){ context.go("/selectGrip");},
+              child: const Text("Grip Selection Overview")
+          ),
+
+          ElevatedButton(onPressed: (){ context.go("/test");}, child: const Text("Test page")),
         ],
       ),
 
