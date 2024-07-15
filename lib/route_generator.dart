@@ -7,6 +7,7 @@ import 'screens/grip_preferences.dart';
 import 'screens/hand_calibration.dart';
 import 'screens/new_user.dart';
 import 'screens/ble_status.dart';
+import 'screens/test_screen.dart';
 import 'package:go_router/go_router.dart';
 
 
@@ -105,43 +106,48 @@ final router = GoRouter(
                   },
                 ),
               ],
-          ), //Sign in screen
+          ),
+          GoRoute(
+            path: 'profile',
+            builder: (context, state) {
+              return ProfileScreen(
+                providers: const [],
+                actions: [
+                  SignedOutAction((context) {
+                    context.pushReplacement('/');
+                  }),
+                ],
+              );
+            },
+          ), //Profile screen
+          GoRoute(
+              path: 'plot',
+              builder: (context, state) => const DataPresentationPage(),
+              routes: [
+                GoRoute(
+                  path: 'calibration',
+                  builder: (context, state) => const HandCalibration(),
+                ),
+              ]
+          ), //Data Presentation Page
+          GoRoute(
+            path: 'grip',
+            builder: (context, state) => const GripSettings(),
+          ), //Grip settings
+          GoRoute(
+            path: 'calibration',
+            builder: (context, state) => const HandCalibration(),
+          ), // Hand Calibration
+          GoRoute(
+            path: 'ble',
+            builder: (context, state) => const BleStatusPage(),
+          ),
+          GoRoute(
+              path: 'test',
+            builder: (context, state) => TestScreen(),
+          ),
         ],
     ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) {
-        return ProfileScreen(
-          providers: const [],
-          actions: [
-            SignedOutAction((context) {
-              context.pushReplacement('/');
-            }),
-          ],
-        );
-      },
-    ), //Profile screen
-    GoRoute(
-      path: '/plot',
-      builder: (context, state) => const DataPresentationPage(),
-      routes: [
-        GoRoute(
-            path: 'calibration',
-          builder: (context, state) => const HandCalibration(),
-        ),
-      ]
-    ), //Data Presentation Page
-    GoRoute(
-      path: '/grip',
-      builder: (context, state) => const GripSettings(),
-    ), //Grip settings
-    GoRoute(
-      path: '/calibration',
-      builder: (context, state) => const HandCalibration(),
-    ), // Hand Calibration
-    GoRoute(
-      path: '/ble',
-      builder: (context, state) => const BleStatusPage(),
-    ),
+
   ]
 );
