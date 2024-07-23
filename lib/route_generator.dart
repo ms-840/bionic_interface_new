@@ -1,3 +1,4 @@
+import 'package:bionic_interface/screens/config_screen.dart';
 import 'package:bionic_interface/screens/select_user.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
@@ -8,7 +9,7 @@ import 'screens/hand_calibration.dart';
 import 'screens/new_user.dart';
 import 'screens/ble_status.dart';
 import 'screens/test_screen.dart';
-import 'screens/direct_grip_selection.dart';
+import 'screens/grip_preferences_auxiliary/direct_grip_selection.dart';
 import 'package:go_router/go_router.dart';
 
 
@@ -54,7 +55,7 @@ final router = GoRouter(
   routes: [
     GoRoute(
         path: '/', //Default, homescreen
-        builder: (context, state) => const HomePage(),
+        builder: (context, state) => const BleStatusPage(),
         routes: [
           GoRoute(
               path: 'sign-in',
@@ -150,6 +151,10 @@ final router = GoRouter(
           GoRoute(
               path: 'test',
             builder: (context, state) => TestScreen(),
+          ),
+          GoRoute(
+              path: 'config',
+            builder: (context, state) => const ConfigScreen(),
           ),
         ],
     ),
