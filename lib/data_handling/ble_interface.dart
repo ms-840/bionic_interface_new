@@ -42,6 +42,27 @@ class BleInterface extends ChangeNotifier{
   bool connectionError = false;
   bool disconnectDesired = false;
 
+  ///An integer representing the battery status (in percent)
+  ///as transmitted by the connected hand.
+  ///The icons are set up according to the following percentages:
+  ///-
+  ///When unconnected, it returns
+  int? batteryStatus = 70;
+  IconData get batteryStatusIcon{
+    switch (batteryStatus){
+      case null: return Icons.bluetooth;
+      case < 10: return Icons.battery_0_bar_sharp;
+      case < 20: return Icons.battery_1_bar_sharp;
+      case < 30: return Icons.battery_2_bar_sharp;
+      case < 40: return Icons.battery_3_bar_sharp;
+      case < 50: return Icons.battery_4_bar_sharp;
+      case < 65: return Icons.battery_5_bar_sharp;
+      case < 75: return Icons.battery_6_bar_sharp;
+      case < 85: return Icons.battery_full_sharp;
+      default: return Icons.error_outline;
+    }
+  }
+
 
   //the unchanged data from the ble connection is stored in this buffer
   DataBuffer receivedDataBuffer = DataBuffer(maxBufferSize: 1000, targetFillPercentage: 0.01);
