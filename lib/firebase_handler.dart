@@ -205,8 +205,6 @@ class FirebaseHandler extends ChangeNotifier{
       'opposedActions': user.opposedActionAsString,
       'unopposedActions': user.unopposedActionAsString,
       'directActions' : user.directActionAsString,
-      //'advancedSetting' : , //TODO: figure out a good way to turn this into an object for firestore
-      //'signalSettings' : , //TODO: figure out a good way to turn this into an object for firestore
     });
   }
 
@@ -257,18 +255,92 @@ class FirebaseHandler extends ChangeNotifier{
     else{
       print("One or more fields were not present in your online profile, please contact us");
     }
+  }
 
+  ///Gets all available configs set in the database
+  /// Arguments
+  /// - String: handID
+  ///
+  /// Returns
+  /// - Firebase collection
+  dynamic getHandConfigs(String handID) async {
+    if(!_loggedIn){
+      throw Exception('Must be logged in to update User Details');
+    }
+    QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+        .collection('handConfigurations')
+        .doc(handID).collection('savedConfigs').get();
+
+    return querySnapshot.docs.map((doc) => doc).toList();
+  }
+
+  ///Gets the most recent clinician set hand config
+  /// Arguments
+  /// - String: handID
+  ///
+  /// Returns
+  /// - Firebase document
+  dynamic getDefaultHandConfig(String handID){
+    final configs = getHandConfigs(handID);
+    print(configs);
+  }
+
+  ///Updates the name of a config saved by the current user
+  /// Arguments
+  /// - String: handID
+  /// - String: configID
+  /// - String: newName
+  ///
+  /// Returns
+  /// - Void
+  Future<void> updateConfigName(
+      String handID, String configID, String newName) async{
+    if(!_loggedIn){
+      throw Exception('Must be logged in to update User Details');
+    }
+    final config = FirebaseFirestore.instance
+        .collection("handConfigurations").doc(handID)
+        .collection("savedConfigs").doc(configID);
+    final checkIfConfigExists = await config.get();
+    if(checkIfConfigExists.exists){
+      await config.update(<String, dynamic>{'configName': newName});
+    }
+  }
+
+  ///Save new config to firebase
+  /// Arguments
+  /// - String: handID
+  /// - String: configJSON
+  /// - String: configName
+  ///
+  /// Returns
+  /// - void
+  Future<void> saveNewConfig(
+      String handID,
+      String configJSON,
+      String configName,
+      ){
+    if(!_loggedIn){
+      throw Exception('Must be logged in to update User Details');
+    }
+    return FirebaseFirestore.instance
+        .collection("handConfigurations").doc(handID)
+        .collection("savedConfigs").add(<String, dynamic>{
+          "userID" : FirebaseAuth.instance.currentUser!.uid,
+          "config" : configJSON,
+          "configName" : configName,
+          "clinician" : false,
+          "date" : DateTime.timestamp(),
+    });
   }
 
 
-
-
-  //TODO: in order:
-  // 1. test that the login and such works as it should <- IT DOES BUT THE PAGES NEED BETTER ROUTING
-  // 1.5 create a page that i can use to test the firebase Handler functions <- done, its the test page, just needs some more of the thinfs
-  // 2. ensure creating the objects works as it should
-  // 3. create functions to convert data from firebase to update user data
-  // 4. consider if there is a way to make the updates + downloads more data plan friendly?
+//TODO:
+  // [X] 0. add a page that is used to select a grip
+  // [ ] 1. integrate the setting syncing with the firebase with what i have at the moment
+  // [ ] 2. create functions for converting to and from JSON
+  // [ ] 3. add functions for getting and adding configs from firestore
+  //
 
   //#endregion
 }
