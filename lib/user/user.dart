@@ -298,11 +298,11 @@ class RebelUser{
   void removeCombinedAction(String actionName){
     //identify the removed action
     // then remove the last action
-    var removeActionNumber = int.parse(actionName.split(" ")[2]);
+    var removeActionNumber = int.parse(actionName.split(" ")[1]);
     List<int> numberValues = [];
     for(var key in combinedActions.keys){
       try{
-        var number = int.parse(key.split(" ")[2]);
+        var number = int.parse(key.split(" ")[1]);
         numberValues.add(number);
       }
       finally{
