@@ -16,7 +16,7 @@
         android:required="true" /> <!-- only makes this available to devices that have this capability -->
 
     <application
-        android:label="bionic_interface"
+        android:label="Rebel Bionics"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
