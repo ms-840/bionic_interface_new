@@ -3,9 +3,11 @@ import 'dart:ui';
 import 'package:provider/provider.dart';
 import 'package:bionic_interface/general_handler.dart';
 import 'package:bionic_interface/grip_trigger_action.dart';
+import '../firebase_handler.dart';
 import 'grip_preferences_auxiliary/grip_dialog.dart';
 import 'grip_preferences_auxiliary/trigger_dialog.dart';
 import 'package:go_router/go_router.dart';
+import 'grip_preferences_auxiliary/direct_grip_selection.dart';
 
 
 class GripSettings extends StatelessWidget{
@@ -25,8 +27,19 @@ class GripSettings extends StatelessWidget{
         title: const Text("Rebel Bionics"),
         actions: [
           const SizedBox.shrink(),
-          Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
-          const SizedBox(width: 10,)
+          IconButton(
+              icon: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+              iconSize: 50,
+              padding: EdgeInsets.zero,
+              onPressed: (){
+                if(Provider.of<FirebaseHandler>(context, listen: false).loggedIn){
+                  context.go("/profile");
+                }
+                else{
+                  context.go("/sign-in");
+                }
+              }
+          ),          const SizedBox(width: 10,)
         ],
       ),
       body: Column(
@@ -36,7 +49,7 @@ class GripSettings extends StatelessWidget{
           //cycle trigger selector
           //const CycleTriggerSelector(),
           const SizedBox(height: 30),
-          Expanded(child: generalHandler.useThumbToggling?
+          Expanded(child: generalHandler.currentUser.advancedSettings.useThumbTrigger?
                const DoubleTypeList()
               : const SingleTypeList()
           ),
@@ -120,28 +133,35 @@ class DoubleTypeList extends StatelessWidget{
 
   @override
   Widget build (BuildContext context){
-    return const DefaultTabController(
-        length: 3,
-        child:  Column(
-          children: [
-             TabBar(
-                tabs: [
-                  Text("Opposed"),
-                  Text("Unopposed"),
-                  Text("Direct"),
-                ],
-            ),
-            Expanded(
-              child: TabBarView(
-                  children: [
-                    ReorderableGripList(listType: "Opposed"),
-                    ReorderableGripList(listType: "Unopposed"),
-                    DirectGripList(),
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        return DefaultTabController(
+            length: 4,
+            child: Column(
+              children: [
+                TabBar(
+                  isScrollable: orientation == Orientation.portrait,
+                  tabs: const [
+                    Text("Opposed"),
+                    Text("Unopposed"),
+                    Text("Direct"),
+                    Text("All"),
                   ],
-              ),
-            ),
-          ],
-        ));
+                ),
+                const Expanded(
+                  child: TabBarView(
+                    children: [
+                      ReorderableGripList(listType: "Opposed"),
+                      ReorderableGripList(listType: "Unopposed"),
+                      DirectGripList(),
+                      GripSelector(),
+                    ],
+                  ),
+                ),
+              ],
+            ));
+      }
+    );
   }
 }
 

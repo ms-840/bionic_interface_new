@@ -1,3 +1,4 @@
+import 'package:bionic_interface/firebase_handler.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
@@ -40,7 +41,19 @@ class _BleStatusPageState extends State<BleStatusPage>{
         title: const Text("Hand Status"),
         actions: [
           const SizedBox.shrink(),
-          Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
+          IconButton(
+              icon: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+              iconSize: 50,
+              padding: EdgeInsets.zero,
+              onPressed: (){
+                if(Provider.of<FirebaseHandler>(context, listen: false).loggedIn){
+                  context.go("/profile");
+                }
+                else{
+                  context.go("/sign-in");
+                }
+              }
+          ),
           const SizedBox(width: 10,)
         ],
       ),
@@ -86,7 +99,7 @@ class _BleStatusPageState extends State<BleStatusPage>{
                 await showDialog(
                     context: context,
                     builder: (context) =>
-                        DeviceDetailsDialog()
+                        const DeviceDetailsDialog()
                 );
                 setState(() {}); //Reloads page in case there was a disconnection
               },
@@ -165,7 +178,7 @@ class _BleStatusPageState extends State<BleStatusPage>{
               child: const Text("Hand Configurations"),
           ),
           const SizedBox(height: 15,),
-          ElevatedButton(onPressed: (){ context.go("/test");}, child: const Text("Test page")),
+          //ElevatedButton(onPressed: (){ context.go("/test");}, child: const Text("Test page")),
 
 
         ],

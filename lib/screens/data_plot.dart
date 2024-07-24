@@ -10,6 +10,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 
+import '../firebase_handler.dart';
 import '../user/user.dart';
 
 class DataPresentationPage extends StatefulWidget{
@@ -76,8 +77,19 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
           title: const Text("Inputs"),
           actions: [
             const SizedBox.shrink(),
-            Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
-            const SizedBox(width: 10,)
+            IconButton(
+                icon: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+                iconSize: 50,
+                padding: EdgeInsets.zero,
+                onPressed: (){
+                  if(Provider.of<FirebaseHandler>(context, listen: false).loggedIn){
+                    context.go("/profile");
+                  }
+                  else{
+                    context.go("/sign-in");
+                  }
+                }
+            ),            const SizedBox(width: 10,)
           ],
         ),
         body: SingleChildScrollView(
