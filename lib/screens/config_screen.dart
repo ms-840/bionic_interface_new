@@ -39,10 +39,10 @@ class _ConfigScreenState extends State<ConfigScreen>{
   ///This refreshes the buffer used for displaying the available firebase configs
   void refreshConfigs() async{
     List<QueryDocumentSnapshot> tempList = await firebaseHandler.getHandConfigs(bleInterface.deviceSerialNumber!);
+    onlineConfigs.clear();
 
     for(var item in tempList){
       dynamic tempData = item.data();
-      print(tempData);
       onlineConfigs.add(OnlineConfig(
           documentID: item.id,
           userID: tempData["userID"],
@@ -72,11 +72,67 @@ class _ConfigScreenState extends State<ConfigScreen>{
           title: const Text("Config"),
           actions: [
             const SizedBox.shrink(),
-            Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
+            IconButton(
+                icon: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+                iconSize: 50,
+                padding: EdgeInsets.zero,
+                onPressed: (){
+                  if(Provider.of<FirebaseHandler>(context, listen: false).loggedIn){
+                    context.go("/profile");
+                  }
+                  else{
+                    context.go("/sign-in");
+                  }
+                }
+            ),
             const SizedBox(width: 10,)
           ],
         ),
         body: const Text("No device connected, configs cannot be shown"),
+      );
+    }
+
+    else if(!firebaseHandler.loggedIn){
+      return Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.home),
+            onPressed: (){
+              context.go("/");
+            },
+          ),
+          title: const Text("Config"),
+          actions: [
+            const SizedBox.shrink(),
+            IconButton(
+                icon: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+                iconSize: 50,
+                padding: EdgeInsets.zero,
+                onPressed: (){
+                  if(Provider.of<FirebaseHandler>(context, listen: false).loggedIn){
+                    context.go("/profile");
+                  }
+                  else{
+                    context.go("/sign-in");
+                  }
+                }
+            ),            const SizedBox(width: 10,)
+          ],
+        ),
+        body: const Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          children: [
+            //Set configs manually
+            AdvancedSettingsScreen(), // <this should only be available when logged in?
+            //Firebase config interface
+            SizedBox(height: 10),
+            Padding(
+              padding: EdgeInsets.all(20.0),
+              child: Text("User not logged in, please click on the Icon in the top Right corner to log in"),
+            ),
+          ],
+        ),
       );
     }
 
@@ -92,7 +148,19 @@ class _ConfigScreenState extends State<ConfigScreen>{
         title: const Text("Config"),
         actions: [
           const SizedBox.shrink(),
-          Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
+          IconButton(
+              icon: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+              iconSize: 50,
+              padding: EdgeInsets.zero,
+              onPressed: (){
+                if(Provider.of<FirebaseHandler>(context, listen: false).loggedIn){
+                  context.go("/profile");
+                }
+                else{
+                  context.go("/sign-in");
+                }
+              }
+          ),
           const SizedBox(width: 10,)
         ],
       ),
@@ -108,8 +176,13 @@ class _ConfigScreenState extends State<ConfigScreen>{
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
                   IconButton(
-                      onPressed: (){
-                        print("add new config");
+                      onPressed: () async{
+                        await showDialog(
+                            context: context,
+                            builder: (context) =>
+                                addConfigDialog()
+                        );
+                        refreshConfigs();
                       },
                       icon: const Icon(Icons.add)
                   ),
@@ -157,6 +230,43 @@ class _ConfigScreenState extends State<ConfigScreen>{
       ),
     );
   }
+
+
+  Dialog addConfigDialog(){
+    var controller = TextEditingController();
+    String defaultName = "Default Name";
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Config Name"),
+            TextField(
+              controller: controller,
+              onSubmitted: (String value) async{
+                if(value.isEmpty){
+                  controller.text = defaultName;
+                }
+              },
+            ),
+            TextButton(
+              onPressed: () {
+                if(controller.text.isEmpty){
+                  controller.text = defaultName;
+                }
+                firebaseHandler.saveNewConfig("0123456789", "newConfigJSON", controller.text);
+                Navigator.pop(context);
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
 }
 
 /// just an easier representation of the online configs
