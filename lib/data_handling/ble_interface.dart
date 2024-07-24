@@ -29,12 +29,16 @@ class BleInterface extends ChangeNotifier{
   String platformName = "";
   Guid serviceUuid = Guid("00000000-cc7a-482a-984a-7f2ed5b3e58f");
 
+  /// The serial number of the device
+  /// is null if
+  String? deviceSerialNumber = "0123456789";
+
   late BluetoothService targetService;
 
 
 
   bool scanning = false;
-  bool connected = false;
+  bool connected = true;
   bool permissionsGranted = false;
   bool subscribedToNotifications = false;
   bool servicesFound= false;
