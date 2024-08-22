@@ -1,5 +1,5 @@
+import 'package:bionic_interface/main.dart';
 import 'package:bionic_interface/screens/config_screen.dart';
-import 'package:bionic_interface/screens/select_user.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
 import 'screens/home.dart';
@@ -14,44 +14,8 @@ import 'package:go_router/go_router.dart';
 
 
 
-class RouteGenerator{
-  static Route<dynamic> generateRoute(RouteSettings settings){
-    switch(settings.name){
-      case '/home':
-        return MaterialPageRoute(builder: (_) => const HomePage());
-      case '/plot':
-        return MaterialPageRoute(builder: (_) => const DataPresentationPage());
-      case '/grip':
-        return MaterialPageRoute(builder: (_) => const GripSettings());
-      case '/calibration':
-        return MaterialPageRoute(builder: (_) => const HandCalibration());
-      case '/ble':
-        return MaterialPageRoute(builder: (_) => const BleStatusPage());
-      case '/newUser':
-        return MaterialPageRoute(builder: (_) => const NewUserPage());
-      case '/selectAccount':
-        return MaterialPageRoute(builder: (_) => const SelectUser());
-      default:
-        return _errorRoute();
-    }
-  }
-
-  static Route<dynamic> _errorRoute(){
-    return MaterialPageRoute(builder: (_){
-      return Scaffold(
-        appBar: AppBar(
-          title: const Text('No Route'),
-          centerTitle: true,
-        ),
-        body: const Center(
-          child: Text('No route found'),
-        ),
-      );
-    });
-  }
-}
-
 final router = GoRouter(
+  navigatorKey: navigatorKey,
   routes: [
     GoRoute(
         path: '/', //Default, homescreen
