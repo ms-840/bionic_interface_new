@@ -481,6 +481,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
   Widget build(BuildContext context) {
     generalHandler = Provider.of<GeneralHandler>(context, listen: true); //this cant be in init state
     advancedSettings = generalHandler.currentUser.advancedSettings;
+    //print(advancedSettings.toString());
     return ExpansionTile(
       title: const Text("Advanced Settings"),
       //controlAffinity: ListTileControlAffinity.leading,
@@ -582,8 +583,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
             settingWidget: labeledSwitch(
               value: advancedSettings.useTwoSignals,
               onChanged: (bool newValue){
-                advancedSettings.useTwoSignals = newValue;
-                setState(() {});
+                generalHandler.updateSignalSettings(setting: "Input Type");
               },
               trueLabel: "2",
               falseLabel: "1",
@@ -604,7 +604,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
                 value: generalHandler.useThumbToggling,
               onChanged: (bool value) {
                 setState(() {
-                  generalHandler.toggleThumbTapUse();
+                  generalHandler.updateSignalSettings(setting: "Thumb Tap Toggling");
                 });
               },
               trueLabel: "ON",
@@ -615,9 +615,9 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
             title: "Open Open Time",
             value: advancedSettings.timeOpenOpen,
             onChanged: (double newValue){
-              advancedSettings.timeOpenOpen = newValue;
-              setState(() {});
+              generalHandler.updateSignalSettings(setting: "Open Open Time", primaryNewValue: newValue);
             },
+
           min: 0.1,
           max: 2,
         ),
@@ -625,8 +625,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           title: "Hold Open Time",
           value: advancedSettings.timeHoldOpen,
           onChanged: (double newValue){
-            advancedSettings.timeHoldOpen = newValue;
-            setState(() {});
+            generalHandler.updateSignalSettings(setting: "Hold Open Time", primaryNewValue: newValue);
           },
           min: 0.1,
           max: 2,
@@ -635,8 +634,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           title: "Co Con Time",
           value: advancedSettings.timeCoCon,
           onChanged: (double newValue){
-            advancedSettings.timeCoCon = newValue;
-            setState(() {});
+            generalHandler.updateSignalSettings(setting: "Co Con Time", primaryNewValue: newValue);
           },
           min: 0.05,
           max: 0.25,
@@ -656,17 +654,16 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
         labeledSwitch(
             value: advancedSettings.alternate,
             onChanged: (bool newValue){
-              advancedSettings.alternate = newValue;
-              setState(() {});
+              generalHandler.updateSignalSettings(setting: "Alternate");
             },
             trueLabel: "Alternating",
             falseLabel: "Fast/Close"
         ),
         advancedSettingSlider(
-            title: "Alt Switch time",
+            title: "Alt Switch Time",
             value: advancedSettings.timeAltSwitch,
             onChanged: (double newValue){
-              advancedSettings.timeAltSwitch = newValue;
+              generalHandler.updateSignalSettings(setting: "Alt Switch Time", primaryNewValue: newValue);
             },
             min: 0.1,
             max: 2,
@@ -683,8 +680,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
         labeledSwitch(
             value: advancedSettings.alternate,
             onChanged: (bool newValue){
-              advancedSettings.alternate = newValue;
-              setState(() {});
+              generalHandler.updateSignalSettings(setting: "Alternate");
             },
             trueLabel: "Alternating",
             falseLabel: "Fast/Close"
@@ -693,7 +689,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           title: "Fast/Close time",
           value: advancedSettings.timeFastClose,
           onChanged: (double newValue){
-            advancedSettings.timeFastClose = newValue;
+            generalHandler.updateSignalSettings(setting: "Fast/Close Time", primaryNewValue: newValue);
           },
           min: 0.1,
           max: 2,
@@ -702,7 +698,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           title: "Fast/Close Level",
           value: advancedSettings.levelFastClose,
           onChanged: (double newValue){
-            advancedSettings.levelFastClose = newValue;
+            generalHandler.updateSignalSettings(setting: "Fast/Close Level", primaryNewValue: newValue);
           },
           min: 0.4,
           max: 4,
@@ -723,8 +719,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           settingWidget: labeledSwitch(
             value: generalHandler.currentUser.advancedSettings.vibrate,
             onChanged: (bool newValue){
-              generalHandler.currentUser.advancedSettings.vibrate = newValue;
-              setState(() {});
+              generalHandler.updateSignalSettings(setting: "Vibrate");
             },
             trueLabel: "ON",
             falseLabel: "OFF",
@@ -735,8 +730,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           settingWidget: labeledSwitch(
             value: generalHandler.currentUser.advancedSettings.buzzer,
             onChanged: (bool newValue){
-              generalHandler.currentUser.advancedSettings.buzzer = newValue;
-              setState(() {});
+              generalHandler.updateSignalSettings(setting: "Buzzer");
             },
             trueLabel: "ON",
             falseLabel: "OFF",

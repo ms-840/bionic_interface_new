@@ -215,6 +215,18 @@ class GeneralHandler extends ChangeNotifier{
   ///       - "Signal A Gain"
   ///       - "Signal B Gain"
   ///       - "Switch Signals"
+  ///       - "Input Type"
+  ///       - "Thumb Tap Toggling"
+  ///       - "Open Open Time"
+  ///       - "Hold Open Time"
+  ///       - "Co Con Time"
+  ///       - "Alternate"
+  ///       - "Alt Switch Time"
+  ///       - "Fast/Close Time"
+  ///       - "Fast/Close Level"
+  ///       - "Vibrate"
+  ///       - "Buzzer"
+  ///
   void updateSignalSettings({required String setting, double primaryNewValue = -1, double secondaryNewValue = -1}){
     switch(setting){
       case 'Signal A Range':
@@ -227,11 +239,32 @@ class GeneralHandler extends ChangeNotifier{
         currentUser.signalSettings.signalBgain = primaryNewValue;
       case 'Switch Signals':
         currentUser.advancedSettings.switchInputs = !currentUser.advancedSettings.switchInputs;
+      case 'Input Type':
+        currentUser.advancedSettings.useTwoSignals = !currentUser.advancedSettings.useTwoSignals;
+      case 'Thumb Tap Toggling':
+        currentUser.toggleThumbTap();
+      case 'Open Open Time':
+        currentUser.advancedSettings.timeOpenOpen = primaryNewValue;
+      case 'Hold Open Time':
+        currentUser.advancedSettings.timeHoldOpen = primaryNewValue;
+      case 'Co Con Time':
+        currentUser.advancedSettings.timeCoCon = primaryNewValue;
+      case 'Alternate':
+        currentUser.advancedSettings.alternate = !currentUser.advancedSettings.alternate;
+      case 'Alt Switch Time':
+        currentUser.advancedSettings.timeAltSwitch = primaryNewValue;
+      case 'Fast/Close Time':
+        currentUser.advancedSettings.timeFastClose = primaryNewValue;
+      case 'Fast/Close Level':
+        currentUser.advancedSettings.levelFastClose = primaryNewValue;
+      case 'Vibrate':
+        currentUser.advancedSettings.vibrate = !currentUser.advancedSettings.vibrate;
+      case 'Buzzer':
+        currentUser.advancedSettings.buzzer = !currentUser.advancedSettings.buzzer;
     }
     notifyListeners();
-
+    firebaseHandler.updateHandSettings(currentUser);
   }
-  //TODO: make this type of thing for the advanced settings as well?
 
   //#endregion
 
