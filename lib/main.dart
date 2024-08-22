@@ -32,9 +32,9 @@ class MainApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (context) => BleInterface(),),
-        ChangeNotifierProvider(create: (context) => DataHandler(Provider.of<BleInterface>(context, listen: false))),
-        ChangeNotifierProvider(create: (context) => GeneralHandler(Provider.of<BleInterface>(context, listen: false))),
         ChangeNotifierProvider(create: (context) => FirebaseHandler(),),
+        ChangeNotifierProvider(create: (context) => DataHandler(Provider.of<BleInterface>(context, listen: false))),
+        ChangeNotifierProvider(create: (context) => GeneralHandler(Provider.of<BleInterface>(context, listen: false),Provider.of<FirebaseHandler>(context, listen: false))),
       ],
       child: MaterialApp.router(
         title: 'Bionic Interface',

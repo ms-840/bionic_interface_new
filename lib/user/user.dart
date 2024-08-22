@@ -2,7 +2,11 @@
 // and their access status
 // if no specific user is logged in, a generic/anonymous user profile should be used
 // im also not sure yet how to best make the user log in
+import 'dart:convert';
+
 import 'package:bionic_interface/grip_trigger_action.dart';
+import 'package:bionic_interface/main.dart';
+import 'package:bionic_interface/route_generator.dart';
 import 'dart:math';
 import 'package:provider/provider.dart';
 import 'package:bionic_interface/general_handler.dart';
@@ -11,29 +15,31 @@ import 'package:flutter/material.dart';
 
 class RebelUser{
   //constructor
-  RebelUser(this.userName);
+  RebelUser();
 
   RebelUser.fromDb({
-    required this.userName,
-    required this.password,
-    required this.name,
-    required this.email,
     required this.accessType,
+    required String newCombinedActions,
+    required String newOpposedActions,
+    required String newUnopposedActions,
+    required String newDirectActions,
 
-    required this.combinedActions,
-    required this.unOpposedActions,
-    required this.directActions,
-
-    required this.advancedSettings,
-    required this.signalSettings,
-  });
+    required String advancedSettings,
+    required String signalSettings,
+  }){
+    final generalHandler = navigatorKey.currentContext!.watch<GeneralHandler>();
+    setAllSettings(generalHandler,
+        newCombinedActions: newCombinedActions,
+        newOpposedActions: newOpposedActions,
+        newUnopposedActions: newUnopposedActions,
+        newDirectActions: newDirectActions,
+        newSignalSettings: signalSettings.toString(),
+        newAdvancedSettings: advancedSettings.toString()
+    );
+  }
 
   RebelUser.copy({
-  required this.userName,
   required RebelUser copy,
-    this.password = "",
-    this.name = "",
-    this.email = "",
     this.accessType = "editor",
   }){
     //not bothering with copying the maps for now since only one profile should be active at once
@@ -44,11 +50,6 @@ class RebelUser{
     advancedSettings = copy.advancedSettings;
     signalSettings = copy.signalSettings;
   }
-
-  late final String userName;
-  String name = ""; //not sure if this is necessary
-  String password = " ";
-  String email = "";
 
   //todo: need to change access types to clinician, editor, viewer
   ///options: viewer, editor, clinician
@@ -388,13 +389,15 @@ class RebelUser{
     //#region convert to Flutter objects
     ///This returns all of the actions in the right time
     ///Specifically only returns the combined, opposed, and unopposed actions
+  ///NOTE: This assumes that the string of opposed and unopposed actions ends in a comma, aka the list would have an empty item at the end
     Map<String, HandAction>  convertStringToUnOpposedAction(
         Map<String, Grip> grips,
-        String opposedActions,
-        String unopposedActions,){
+        String newOpposedActions,
+        String newUnopposedActions,){
 
-      final tempListOpposedActions = opposedActions.split(",");
-      final tempListUnopposedActions = unopposedActions.split(",");
+
+      final tempListOpposedActions = newOpposedActions.split(",");
+      final tempListUnopposedActions = newUnopposedActions.split(",");
       final listOpposedActions = tempListOpposedActions.sublist(0, tempListOpposedActions.length-1);
       final listUnopposedActions = tempListUnopposedActions.sublist(0,tempListUnopposedActions.length-1);
 
@@ -406,7 +409,6 @@ class RebelUser{
       for(var (index, action) in listUnopposedActions.indexed){
         unOpposedActionsMap["Unopposed Position ${index+1}"] = HandAction(grip: grips[action]);
       }
-
       return unOpposedActionsMap;
     }
 
@@ -456,13 +458,15 @@ class RebelUser{
   ///
   /// This should primarily be used when syncing values from the firebase firestore
   void setAllSettings(GeneralHandler generalHandler,{
+    required String newCombinedActions,
     required String newOpposedActions,
     required String newUnopposedActions,
     required String newDirectActions,
     required String newSignalSettings,
     required String newAdvancedSettings,
   }){
-
+    combinedActions = convertStringToCombinedAction(
+        generalHandler.gripPatterns, newCombinedActions);
     unOpposedActions = convertStringToUnOpposedAction(
         generalHandler.gripPatterns, newOpposedActions, newUnopposedActions);
     directActions = convertStringToDirectAction(
@@ -470,11 +474,32 @@ class RebelUser{
     signalSettings = SignalSettings.fromString(newSignalSettings);
     advancedSettings = AdvancedSettings.fromString(newAdvancedSettings);
   }
+
+  //#region JSON formats
+
+  /// converts the [signalSettings] and [advancedSettings] into a JSON object
+  String configToJSON() => jsonEncode({
+    "signalSettings": signalSettings.toString(),
+    "advancedSettings": advancedSettings.toString()
+  });
+
+  /// Sets the [advancedSettings] and [signalSettings] to the values specified in the JSON
+  void setConfig(String json){
+    final config = jsonDecode(json) as Map<String, dynamic>;
+    signalSettings = SignalSettings.fromString(config["signalSettings"]!);
+    //print(config["signalSettings"]);
+    //print(signalSettings.toString());
+    advancedSettings = AdvancedSettings.fromString(config["advancedSettings"]!);
+    //print(config["advancedSettings"]);
+    //print(advancedSettings.toString());
+  }
+  //#endregion
+
 }
 
 class AnonymousUser extends RebelUser{
   //This is the user class to be used when no login has occurred
-  AnonymousUser() : super(''){
+  AnonymousUser() : super(){
     accessType = "viewer";
     //print("Anonymous User created");
   }
@@ -493,15 +518,22 @@ class SignalSettings {
   double signalAgain = 1;
   double signalBgain = 1;
 
-  SignalSettings({this.signalAon = 1, this.signalAmax = 3, this.signalBon = 1,
-    this.signalBmax = 3, this.signalAgain = 1, this.signalBgain = 1});
+  SignalSettings({
+    this.signalAon = 1,
+    this.signalAmax = 3,
+    this.signalBon = 1,
+    this.signalBmax = 3,
+    this.signalAgain = 1,
+    this.signalBgain = 1}){
+    //TODO: Make this also update the hand settings of the hand via BLE (?)
+  }
 
   /// This can use a string formatted like a dictionary,
   /// like you would get from the toString() method for the class
   SignalSettings.fromString(String settingString){
     final variables = settingString.split(",");
     for(var entry in variables){
-      var variable = entry.split(":")[0];
+      var variable = entry.split(":");
       switch (variable[0]){
         case "signalAon":
           signalAon = double.parse(variable[1]);
@@ -516,6 +548,7 @@ class SignalSettings {
         case "signalBgain":
           signalBgain = double.parse(variable[1]);
       }
+      //TODO: Make this also update the hand settings of the hand via BLE
     }
   }
 
@@ -554,7 +587,7 @@ class SignalSettings {
 
   @override
   String toString() {
-    return "signalAOn:$signalAon,signalAmax:$signalAmax,signalBon:$signalBon,signalBmax:$signalBmax,signalAgain:$signalAgain,signalBgain:$signalBgain";
+    return "signalAon:$signalAon,signalAmax:$signalAmax,signalBon:$signalBon,signalBmax:$signalBmax,signalAgain:$signalAgain,signalBgain:$signalBgain";
   }
 
 }
@@ -578,14 +611,16 @@ class AdvancedSettings{
     this.levelFastClose = 1,
     this.vibrate = true,
     this.buzzer = true,
-  });
+  }){
+    //TODO: Make this also update the hand settings of the hand via BLE
+  }
 
   ///This constructs an advanced settings object from a string formatted like a dictionary,
   ///specifically the one that is made from the toString() method of this class
   AdvancedSettings.fromString(String settingString){
     final variables = settingString.split(",");
     for(var entry in variables){
-      var variable = entry.split(":")[0];
+      var variable = entry.split(":");
       switch (variable[0]){
         case "switchInputs":
           switchInputs = variable[1] == "true";
@@ -616,6 +651,7 @@ class AdvancedSettings{
         case "buzzer":
           buzzer = variable[1] == "true";
         }
+      //TODO: Make this also update the hand settings of the hand via BLE
       }
   }
 

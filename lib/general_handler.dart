@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'data_handling/ble_interface.dart';
 import 'data_persistence/database_interface.dart';
 import 'dart:async';
+import 'firebase_handler.dart';
 import 'user/user.dart';
 import 'grip_trigger_action.dart';
 import 'package:flutter/widgets.dart';
@@ -15,13 +16,14 @@ import 'package:path/path.dart';
 class GeneralHandler extends ChangeNotifier{
   late BleInterface bleInterface;
   late DbInterface _dbInterface;
+  late FirebaseHandler firebaseHandler;
 
-  GeneralHandler(this.bleInterface){
-    _dbInterface = DbInterface();
+  GeneralHandler(this.bleInterface, this.firebaseHandler){
+    //_dbInterface = DbInterface();
     print("General Handler initialized");
   }
 
-  //Keys and related ble codes
+  ///Keys and related ble codes, including "None" and "Next Grip"
   final gripPatterns = {
     "None":           Grip(name: "None",           type: "",          bleCommand: "",  assetLocation: "assets/images/logo_grey.png"),
     "Next Grip":      Grip(name: "Next Grip",      type: "",          bleCommand: "",  assetLocation: "assets/images/logo_grey.png"),
@@ -49,6 +51,14 @@ class GeneralHandler extends ChangeNotifier{
       }
     }
     return [opposedGrips, unopposedGrips];
+  }
+
+  ///Returns the grip patterns without "None" and "Next Grip", ie only the actual grips
+  Map<String, Grip> get onlyGripPatterns{
+    var gripPatternsCopy = Map<String, Grip>.from(gripPatterns);
+    gripPatternsCopy.remove("None");
+    gripPatternsCopy.remove("Next Grip");
+    return gripPatternsCopy;
   }
 
 
@@ -117,6 +127,7 @@ class GeneralHandler extends ChangeNotifier{
         }
     }
     notifyListeners();
+    firebaseHandler.updateHandActions(currentUser);
   }
 
   /// removes the specified grip from the specified list type. Available types:
@@ -133,6 +144,7 @@ class GeneralHandler extends ChangeNotifier{
         currentUser.removeCombinedAction(actionName);
     }
     notifyListeners();
+    firebaseHandler.updateHandActions(currentUser);
   }
 
   RebelUser currentUser = AnonymousUser();
@@ -151,6 +163,9 @@ class GeneralHandler extends ChangeNotifier{
         return 0;
     }
   }
+
+
+  //#region Setting update methods
 
   bool get useThumbToggling{
     return currentUser.useThumbToggling;
@@ -172,6 +187,7 @@ class GeneralHandler extends ChangeNotifier{
       currentUser.setCombinedAction(action: action, grip: grip, trigger: trigger);
     }
     notifyListeners();
+    firebaseHandler.updateHandActions(currentUser);
   }
 
   ///Available options:
@@ -218,69 +234,12 @@ class GeneralHandler extends ChangeNotifier{
 
   }
   //TODO: make this type of thing for the advanced settings as well?
-  //#region ble commands
-  void updateGripSettingsBle(String grip, String rule){
-    //Todo: send the commands for updating grip settings
-  }
 
   //#endregion
 
-  //#region SQlite database
-  void loadUserFromDB(BuildContext context, String username, String password) async{
-    var tempUser = await _dbInterface.constructUserFromDb(context, username, password);
-    if(tempUser!=null){
-      currentUser = tempUser;
-    }
-    else{
-      print("User $username could not be loaded");
-    }
-  }
-
-  Future<bool> updateDb() async{
-    return await _dbInterface.updateUserData(currentUser);
-  }
-
-  Future<List<String>> getAllSavedUsers() async{
-    return await _dbInterface.getAllUserNames();
-  }
-
-  ///Attempt to load data for a given username,
-  ///if username is not found the database then the previous User is kept
-  void userLogIn(BuildContext context, String username, {String password = ""}) async{
-    currentUser = await _dbInterface.constructUserFromDb(context, username, password) ?? currentUser;
-  }
-
-  /// create a new user profile
-  Future<int> newUser({
-    required String username,
-    required bool saveCurrentSettings,
-    String name = "", String password = "", String email = ""}) async{
-    late RebelUser user ;
-    if(saveCurrentSettings){
-      user = RebelUser.copy(
-          userName: username,
-          copy: currentUser,
-          name: name,
-        password: password,
-        email: email,
-      );
-    }
-    else{
-      user = RebelUser(username);
-      user.name = name;
-      user.password = password;
-      user.email = email;
-    }
-
-    return await _dbInterface.newUserData(user);
-  }
-
-  ///A list of all usernames stored in the db
-  List<String> userAccounts = [];
-  ///Update the user accounts and notify listeners
-  void updateUserAccounts() async{
-    userAccounts = await _dbInterface.getAllUserNames();
-    notifyListeners();
+  //#region ble commands
+  void updateGripSettingsBle(String grip, String rule){
+    //Todo: send the commands for updating grip settings
   }
 
   //#endregion

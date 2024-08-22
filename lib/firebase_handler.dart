@@ -1,4 +1,5 @@
 import 'package:bionic_interface/general_handler.dart';
+import 'package:bionic_interface/main.dart';
 import 'package:bionic_interface/user/user.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -66,17 +67,49 @@ class FirebaseHandler extends ChangeNotifier{
         .authStateChanges()
         .listen((User? user) {
           currentUser = user;
+
       if (user == null) {
-        print('User is currently signed out!');
         _loggedIn = false;
       } else {
-        print('User is signed in!');
         _loggedIn = true;
+        syncWithOnlineDatabase();
+
         //Todo: sync data from db - or give the user the choice to sync settings from the db?
       }
       notifyListeners();
     });
   }
+
+  ///Sets up a user object according to the settings saved in firestore
+  void syncUserData() async{
+    //things to sync:
+    // - hand settings (which is the up to date user specific one, not the saved ones)
+    // - action settings (the hand actions set in the app)
+
+    final handSettings = await FirebaseFirestore.instance
+        .collection('handSettings').doc(FirebaseAuth.instance.currentUser!.uid).get();
+
+    final actionSettings = await FirebaseFirestore.instance
+        .collection('actionSettings').doc(FirebaseAuth.instance.currentUser!.uid).get();
+
+    RebelUser user = RebelUser.fromDb(
+        accessType: "editor",
+        newCombinedActions: actionSettings["combinedActions"],
+        newOpposedActions: actionSettings["opposedActions"],
+        newUnopposedActions: actionSettings["unopposedActions"],
+        newDirectActions: actionSettings["directActions"],
+        advancedSettings: handSettings["advancedSettings"],
+        signalSettings: handSettings["signalSettings"]
+    );
+
+    final generalHandler = navigatorKey.currentContext!.watch<GeneralHandler>();
+    generalHandler.currentUser = user;
+    //set the general handler
+
+
+  }
+
+
 
   ///NOTE: THIS IS UNUSED. logging in is handled by the sign in screen
   /// create new Firebase User using an email + password combination
@@ -232,10 +265,11 @@ class FirebaseHandler extends ChangeNotifier{
   }
 
   /// This retrieves the data from the database and updates the hand actions and hand settings
-  Future<void> syncWithOnlineDatabase(BuildContext context) async{
+  Future<void> syncWithOnlineDatabase() async{
     if(!_loggedIn){
       throw Exception('Must be logged in to update User Details');
     }
+    final context = navigatorKey.currentContext!;
     var generalHandler = Provider.of<GeneralHandler>(context, listen: false);
     final handSettings = await FirebaseFirestore.instance
         .collection('handSettings')
@@ -248,9 +282,12 @@ class FirebaseHandler extends ChangeNotifier{
       generalHandler.currentUser.setAllSettings(generalHandler,
           newOpposedActions: actionSettings['opposedActions'],
           newUnopposedActions: actionSettings['unopposedActions'],
+          newCombinedActions: actionSettings['combinedActions'],
           newDirectActions: actionSettings['directActions'],
           newSignalSettings: handSettings['signalSettings'],
           newAdvancedSettings: handSettings['advancedSettings']);
+
+      print("user data synced");
     }
     else{
       print("One or more fields were not present in your online profile, please contact us");
@@ -274,16 +311,6 @@ class FirebaseHandler extends ChangeNotifier{
     return querySnapshot.docs.map((doc) => doc).toList();
   }
 
-  ///Gets the most recent clinician set hand config
-  /// Arguments
-  /// - String: handID
-  ///
-  /// Returns
-  /// - Firebase document
-  dynamic getDefaultHandConfig(String handID){
-    final configs = getHandConfigs(handID);
-    print(configs);
-  }
 
   ///Updates the name of a config saved by the current user
   /// Arguments
@@ -315,15 +342,16 @@ class FirebaseHandler extends ChangeNotifier{
   ///
   /// Returns
   /// - void
-  Future<void> saveNewConfig(
+  Future<String> saveNewConfig(
       String handID,
       String configJSON,
       String configName,
-      ){
+      ) async{
     if(!_loggedIn){
       throw Exception('Must be logged in to update User Details');
     }
-    return FirebaseFirestore.instance
+    String docID = "";
+    await FirebaseFirestore.instance
         .collection("handConfigurations").doc(handID)
         .collection("savedConfigs").add(<String, dynamic>{
           "userID" : FirebaseAuth.instance.currentUser!.uid,
@@ -331,9 +359,38 @@ class FirebaseHandler extends ChangeNotifier{
           "configName" : configName,
           "clinician" : false,
           "date" : DateTime.timestamp(),
+    }).then((DocumentReference doc) => {docID = doc.id});
+    return docID;
+  }
+
+  /// Updates the firebase device collection
+  Future<void> setActiveConfig(String handID, String configId){
+    return FirebaseFirestore.instance
+        .collection("handConfigurations").doc(handID).update(<String, dynamic>{
+          "active" : configId
     });
   }
 
+  ///Returns the id of the config noted to be active
+  Future<dynamic> getActiveConfigID(String handID) async{
+    if(!_loggedIn){
+      throw Exception('Must be logged in to update User Details');
+    }
+    DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
+        .collection('handConfigurations')
+        .doc(handID).get();
+    return documentSnapshot["active"];
+  }
+
+
+  Future<void> deleteConfig(String handID, String configID) async{
+    if(!_loggedIn){
+      throw Exception('Must be logged in to update User Details');
+    }
+     await FirebaseFirestore.instance
+        .collection('handConfigurations')
+        .doc(handID).collection("savedConfigs").doc(configID).delete();
+  }
 
 //TODO:
   // [X] 0. add a page that is used to select a grip

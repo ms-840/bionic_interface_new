@@ -1,6 +1,7 @@
 
 import 'package:bionic_interface/general_handler.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:provider/provider.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
@@ -51,14 +52,15 @@ class _ConfigScreenState extends State<ConfigScreen>{
           clinician: tempData["clinician"],
           dateSaved: tempData["date"]));
     }
-    setState(() {
-
-    });
+    onlineConfigs.sort((a, b) => b.dateSaved.compareTo(a.dateSaved));
+    getActiveConfig();
+    setState(() {});
   }
 
   @override
   Widget build(BuildContext context) {
 
+    firebaseHandler = Provider.of<FirebaseHandler>(context, listen: true);
     if (!bleInterface.connected){
       return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
@@ -180,7 +182,7 @@ class _ConfigScreenState extends State<ConfigScreen>{
                         await showDialog(
                             context: context,
                             builder: (context) =>
-                                addConfigDialog()
+                                addConfigDialog(generalHandler.currentUser.configToJSON())
                         );
                         refreshConfigs();
                       },
@@ -195,44 +197,112 @@ class _ConfigScreenState extends State<ConfigScreen>{
                   ),
                 ],
               ),
-              const SizedBox(height: 10),
+              titleText("Active"),
+              configListTile(activeConfig),
+              titleText("Default"),
+              configListTile(defaultConfig),
+              titleText("All"),
               ListView.builder(
                   scrollDirection: Axis.vertical,
                   itemCount: onlineConfigs.length,
                   shrinkWrap: true,
                   itemBuilder: (BuildContext context, int index){
                     OnlineConfig config = onlineConfigs[index];
-                    return ListTile(
-                      title: Column(
-                        children: [
-                          Text(config.configName, style: const TextStyle(fontSize: 20),),
-                          Text(config.dateSaved.toDate().toString()),
-                        ],
-                      ),
-                      leading: Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
-                      //TODO: this should be used to indicate if a config is saved by the user or someone else
-                      onTap: (){
-                        print("Change name");
-                      },
-                      onLongPress: (){
-                        print("Set as thing");
-                      },
+                    return Dismissible(
+                      key: Key(config.documentID),
+                        confirmDismiss: (direction) async{
+                        if(config.clinician || config.userID != firebaseHandler.currentUser!.uid){
+                          return false;
+                        }
+                        else if (config.documentID == activeConfig!.documentID){
+                          return false;
+                        }
+                            final result = await showDialog(
+                            context: context,
+                            builder: (context) =>
+                                confirmConfigChangeDialog(config, "Are you sure you want to permanently delete \"${config.configName}\"?")
+                            );
+                          return result;
+                        },
+                        onDismissed: (direction){
+                          firebaseHandler.deleteConfig(bleInterface.deviceSerialNumber!, config.documentID);
+                          onlineConfigs.remove(index);
+                        },
+                        child: configListTile(config)
                     );
                   }
               ),
-              // select one to override the current settings
-                // or change the name of one?
-                // or delete one, but thats only possible if you are the author
-              // save current config and give it a name
-              //
             ],
           )
       ),
     );
   }
 
+  Widget titleText(String text){
+    return  Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Text(text, style: const TextStyle(fontSize: 25),),
+        ],
+      ),
+    );
+  }
 
-  Dialog addConfigDialog(){
+  ListTile configListTile(OnlineConfig? config){
+    if(config == null){
+      return const ListTile(
+        title: Column(
+          children: [
+            Text("CONFIG UNAVAILABLE"),
+          ],
+        ),
+        leading: Icon(Icons.error),
+        //TODO: this should be used to indicate if a config is saved by the user or someone else
+      );
+    }
+    else{
+      return ListTile(
+        title: Column(
+          children: [
+            Text(config.configName, style: const TextStyle(fontSize: 20),),
+            Text(config.dateSaved.toDate().toString()),
+          ],
+        ),
+        leading: Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
+        //TODO: this should be used to indicate if a config is saved by the user or someone else
+        onTap: () async{
+            await showDialog(
+                context: context,
+                builder: (context) =>
+                    changeConfigNameDialog(config)
+            );
+        },
+        onLongPress: ()async{
+          if(activeConfig!.documentID!=config.documentID) {
+            final result = await showDialog(
+                context: context,
+                builder: (context) =>
+                    confirmConfigChangeDialog(config,
+                        "Are you sure you want to change the active config to \"${config
+                            .configName}\"?")
+            );
+            if(result){
+              generalHandler.currentUser.setConfig(config.config);
+              await firebaseHandler.setActiveConfig(
+                  bleInterface.deviceSerialNumber!,
+                  config.documentID);
+              await getActiveConfig();
+            }
+          }
+        },
+      );
+    }
+  }
+
+
+  Dialog addConfigDialog(String configJson){
     var controller = TextEditingController();
     String defaultName = "Default Name";
     return Dialog(
@@ -252,11 +322,17 @@ class _ConfigScreenState extends State<ConfigScreen>{
               },
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async{
                 if(controller.text.isEmpty){
                   controller.text = defaultName;
                 }
-                firebaseHandler.saveNewConfig("0123456789", "newConfigJSON", controller.text);
+                final newID = await firebaseHandler.saveNewConfig(
+                    bleInterface.deviceSerialNumber!,
+                    configJson,
+                    controller.text);
+
+                firebaseHandler.setActiveConfig(bleInterface.deviceSerialNumber!, newID);
+                getActiveConfig();
                 Navigator.pop(context);
               },
               child: const Text('OK'),
@@ -265,6 +341,113 @@ class _ConfigScreenState extends State<ConfigScreen>{
         ),
       ),
     );
+  }
+
+  Dialog confirmConfigChangeDialog(OnlineConfig config, String text){
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Text(text),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context, false);
+                  },
+                  child: const Text('NO'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context, true);
+                  },
+                  child: const Text('YES'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Dialog changeConfigNameDialog(OnlineConfig config){
+    var controller = TextEditingController();
+    String defaultName = "Default Name";
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Change Config Name"),
+            TextField(
+              controller: controller,
+              onSubmitted: (String value) async{
+                if(value.isEmpty){
+                  controller.text = defaultName;
+                }
+              },
+            ),
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async{
+                    if(controller.text.isEmpty){
+                      controller.text = defaultName;
+                    }
+                    await firebaseHandler.updateConfigName(bleInterface.deviceSerialNumber!, config.documentID, controller.text);
+                    refreshConfigs();
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  OnlineConfig? get defaultConfig{
+    final clinicianConfigs = onlineConfigs.where((config) => config.clinician).toList(growable: false);
+    if(clinicianConfigs.isEmpty){
+      return null;
+    }
+    else if(clinicianConfigs.length>1){
+      clinicianConfigs.sort((a, b) => b.dateSaved.compareTo(a.dateSaved));
+    }
+    return clinicianConfigs[0];
+  }
+
+  OnlineConfig? activeConfig;
+  Future<void> getActiveConfig() async{
+    final configID = await firebaseHandler.getActiveConfigID(bleInterface.deviceSerialNumber!);
+    final config = onlineConfigs.where((config) => config.documentID == configID);
+    if(config.isNotEmpty){
+      setState(() {activeConfig = config.first;});
+    }
+    else{
+      setState(() {
+        activeConfig = null;
+      });
+    }
   }
 
 }
