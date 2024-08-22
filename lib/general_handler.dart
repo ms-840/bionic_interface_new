@@ -3,7 +3,6 @@
 
 import 'package:flutter/material.dart';
 import 'data_handling/ble_interface.dart';
-import 'data_persistence/database_interface.dart';
 import 'dart:async';
 import 'firebase_handler.dart';
 import 'user/user.dart';
@@ -15,7 +14,6 @@ import 'package:path/path.dart';
 
 class GeneralHandler extends ChangeNotifier{
   late BleInterface bleInterface;
-  late DbInterface _dbInterface;
   late FirebaseHandler firebaseHandler;
 
   GeneralHandler(this.bleInterface, this.firebaseHandler){
