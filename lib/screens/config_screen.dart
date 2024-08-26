@@ -137,7 +137,7 @@ class _ConfigScreenState extends State<ConfigScreen>{
         ),
       );
     }
-
+    checkActiveConfig();
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
       appBar: AppBar(
@@ -198,7 +198,7 @@ class _ConfigScreenState extends State<ConfigScreen>{
                 ],
               ),
               titleText("Active"),
-              configListTile(activeConfig),
+              configListTile(activeConfig, message: "Active Config has been updated"),
               titleText("Default"),
               configListTile(defaultConfig),
               titleText("All"),
@@ -211,10 +211,11 @@ class _ConfigScreenState extends State<ConfigScreen>{
                     return Dismissible(
                       key: Key(config.documentID),
                         confirmDismiss: (direction) async{
+                        print("dismissed");
                         if(config.clinician || config.userID != firebaseHandler.currentUser!.uid){
                           return false;
                         }
-                        else if (config.documentID == activeConfig!.documentID){
+                        else if (activeConfig!=null && config.documentID == activeConfig!.documentID){
                           return false;
                         }
                             final result = await showDialog(
@@ -250,16 +251,15 @@ class _ConfigScreenState extends State<ConfigScreen>{
     );
   }
 
-  ListTile configListTile(OnlineConfig? config){
+  ListTile configListTile(OnlineConfig? config, {String? message}){
     if(config == null){
-      return const ListTile(
+      return ListTile(
         title: Column(
           children: [
-            Text("CONFIG UNAVAILABLE"),
+            message !=null? Text(message): const Text("CONFIG UNAVAILABLE"),
           ],
         ),
-        leading: Icon(Icons.error),
-        //TODO: this should be used to indicate if a config is saved by the user or someone else
+        leading: const Icon(Icons.error),
       );
     }
     else{
@@ -270,8 +270,8 @@ class _ConfigScreenState extends State<ConfigScreen>{
             Text(config.dateSaved.toDate().toString()),
           ],
         ),
-        leading: Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
-        //TODO: this should be used to indicate if a config is saved by the user or someone else
+        leading: Image.asset(
+          config.clinician?'assets/images/logo_grey.png':'assets/images/logo.png', fit: BoxFit.contain, height: 50,),
         onTap: () async{
             await showDialog(
                 context: context,
@@ -280,7 +280,7 @@ class _ConfigScreenState extends State<ConfigScreen>{
             );
         },
         onLongPress: ()async{
-          if(activeConfig!.documentID!=config.documentID) {
+          if(activeConfig == null || activeConfig!.documentID!=config.documentID) {
             final result = await showDialog(
                 context: context,
                 builder: (context) =>
@@ -441,7 +441,15 @@ class _ConfigScreenState extends State<ConfigScreen>{
     final configID = await firebaseHandler.getActiveConfigID(bleInterface.deviceSerialNumber!);
     final config = onlineConfigs.where((config) => config.documentID == configID);
     if(config.isNotEmpty){
-      setState(() {activeConfig = config.first;});
+      if(config.first.config == generalHandler.currentUser.configToJSON()){
+        setState(() {activeConfig = config.first;});
+      }
+      else{
+        setState(() {
+          activeConfig = null;
+        });
+      }
+
     }
     else{
       setState(() {
@@ -450,7 +458,20 @@ class _ConfigScreenState extends State<ConfigScreen>{
     }
   }
 
+  ///Checks if the config designated on firebase is the one currently active on the app
+  void checkActiveConfig(){
+    if(activeConfig == null){
+      return;
+    }
+    else if(activeConfig!.config != generalHandler.currentUser.configToJSON()){
+      setState(() {
+        activeConfig = null;
+      });
+    }
+  }
 }
+
+
 
 /// just an easier representation of the online configs
 class OnlineConfig{
