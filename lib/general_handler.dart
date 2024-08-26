@@ -227,7 +227,7 @@ class GeneralHandler extends ChangeNotifier{
   ///       - "Vibrate"
   ///       - "Buzzer"
   ///
-  void updateSignalSettings({required String setting, double primaryNewValue = -1, double secondaryNewValue = -1}){
+  void updateSignalSettings({required String setting, bool updateFirebase = true, double primaryNewValue = -1, double secondaryNewValue = -1}){
     switch(setting){
       case 'Signal A Range':
         currentUser.signalSettings.setSignalArange(on: primaryNewValue, max: secondaryNewValue);
@@ -263,7 +263,9 @@ class GeneralHandler extends ChangeNotifier{
         currentUser.advancedSettings.buzzer = !currentUser.advancedSettings.buzzer;
     }
     notifyListeners();
-    firebaseHandler.updateHandSettings(currentUser);
+    if(updateFirebase){
+      firebaseHandler.updateHandSettings(currentUser);
+    }
   }
 
   //#endregion

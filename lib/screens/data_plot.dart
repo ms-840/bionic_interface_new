@@ -301,19 +301,27 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
       child: RangeSlider(
           activeColor: sliderType == "Signal A Range"? emg1Color:emg2Color,
           max: max,
-          //divisions: max~/10,
-          //labels: RangeLabels(range.start.toString(), range.end.toString(),),
           values: range,
-          onChanged: (RangeValues values){
+          onChangeEnd: (RangeValues values){
             //update the values in the user settings
             setState(() {
               generalHandler.updateSignalSettings(
                   setting: sliderType,
+                  updateFirebase: true,
                   primaryNewValue: values.start,
                   secondaryNewValue: values.end
               );
             });
-          }
+          }, onChanged: (RangeValues values) {
+              setState(() {
+                generalHandler.updateSignalSettings(
+                    setting: sliderType,
+                    updateFirebase: false,
+                    primaryNewValue: values.start,
+                    secondaryNewValue: values.end
+                );
+              });
+      },
       ),
     );
   }
@@ -411,30 +419,30 @@ class _DataPresentationPageState extends State<DataPresentationPage>{
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 3, 30, 3),
               child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const Text("Active Trigger"),
-                    Expanded(child: Container(),),
-                    trainingCircle(status: 1),
-                  ],
-                ),
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const Text("Active Trigger"),
+                  Expanded(child: Container(),),
+                  trainingCircle(status: 1),
+                ],
+              ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(25, 3, 30, 3),
               child: Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  children: [
-                    const Text("Successful Trigger"),
-                    Expanded(child: Container(),),
-                    trainingCircle(status: 2),
-                  ],
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  const Text("Successful Trigger"),
+                  Expanded(child: Container(),),
+                  trainingCircle(status: 2),
+                ],
               ),
             ),
             ElevatedButton(
-                onPressed: (){
-                  Navigator.pop(context);
-                },
-                child: const Text("Back"))
+              onPressed: (){
+                Navigator.pop(context);
+              },
+              child: const Text("Back"))
           ],
         ),
 
@@ -498,10 +506,10 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
             children: [
               const Text("Hand Calibration"),
               IconButton(
-                  onPressed: (){
-                    context.go("/calibration");
-                  },
-                  icon: const Icon(Icons.settings))
+                onPressed: (){
+                  context.go("/calibration");
+                },
+                icon: const Icon(Icons.settings))
             ],
           ),
         )
@@ -524,7 +532,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
     );
   }
 
-  Widget advancedSettingSlider({required String title, required double value, required Function(double) onChanged,
+  Widget advancedSettingSlider({required String title, required double value, required Function(double) onChanged, required Function(double) onChangeEnd,
     double min = 0, double max = 4, String unit = "sec", int decimals = 1}){
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
@@ -537,6 +545,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           Expanded(child: Slider(
             value: value,
             onChanged: onChanged,
+            onChangeEnd: onChangeEnd,
             min: min,
             max: max,
             divisions: ((max-min)*pow(10, decimals)).toInt(),
@@ -568,26 +577,26 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
       controlAffinity: ListTileControlAffinity.leading,
       children: [
         advancedSettingSpacer(
-            title: "Switch Inputs",
-            settingWidget: labeledSwitch(
-              value: generalHandler.getSignalSettings("Switch Signals"),
-              onChanged: (bool newValue){
-                generalHandler.updateSignalSettings(setting: "Switch Signals");
-              },
-              trueLabel: "BA",
-              falseLabel: "AB",
-            ),
+          title: "Switch Inputs",
+          settingWidget: labeledSwitch(
+            value: generalHandler.getSignalSettings("Switch Signals"),
+            onChanged: (bool newValue){
+              generalHandler.updateSignalSettings(setting: "Switch Signals");
+            },
+            trueLabel: "BA",
+            falseLabel: "AB",
+          ),
         ),
         advancedSettingSpacer(
-            title: "Input Type",
-            settingWidget: labeledSwitch(
-              value: advancedSettings.useTwoSignals,
-              onChanged: (bool newValue){
-                generalHandler.updateSignalSettings(setting: "Input Type");
-              },
-              trueLabel: "2",
-              falseLabel: "1",
-            ),
+          title: "Input Type",
+          settingWidget: labeledSwitch(
+            value: advancedSettings.useTwoSignals,
+            onChanged: (bool newValue){
+              generalHandler.updateSignalSettings(setting: "Input Type");
+            },
+            trueLabel: "2",
+            falseLabel: "1",
+          ),
         ),
       ],
     );
@@ -599,25 +608,33 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
       controlAffinity: ListTileControlAffinity.leading,
       children: [
         advancedSettingSpacer(
-            title: "Thumb Tap Toggling",
-            settingWidget: labeledSwitch(
-                value: generalHandler.useThumbToggling,
-              onChanged: (bool value) {
-                setState(() {
-                  generalHandler.updateSignalSettings(setting: "Thumb Tap Toggling");
-                });
-              },
-              trueLabel: "ON",
-              falseLabel: "OFF",
-            )
+          title: "Thumb Tap Toggling",
+          settingWidget: labeledSwitch(
+              value: generalHandler.useThumbToggling,
+            onChanged: (bool value) {
+              setState(() {
+                generalHandler.updateSignalSettings(setting: "Thumb Tap Toggling");
+              });
+            },
+            trueLabel: "ON",
+            falseLabel: "OFF",
+          )
         ),
         advancedSettingSlider(
-            title: "Open Open Time",
-            value: advancedSettings.timeOpenOpen,
-            onChanged: (double newValue){
-              generalHandler.updateSignalSettings(setting: "Open Open Time", primaryNewValue: newValue);
-            },
-
+          title: "Open Open Time",
+          value: advancedSettings.timeOpenOpen,
+          onChanged: (double newValue){
+            generalHandler.updateSignalSettings(
+                setting: "Open Open Time",
+                updateFirebase: false,
+                primaryNewValue: newValue);
+          },
+          onChangeEnd: (double newValue){
+            generalHandler.updateSignalSettings(
+                setting: "Open Open Time",
+                updateFirebase: true,
+                primaryNewValue: newValue);
+          },
           min: 0.1,
           max: 2,
         ),
@@ -625,7 +642,16 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           title: "Hold Open Time",
           value: advancedSettings.timeHoldOpen,
           onChanged: (double newValue){
-            generalHandler.updateSignalSettings(setting: "Hold Open Time", primaryNewValue: newValue);
+            generalHandler.updateSignalSettings(
+                setting: "Hold Open Time",
+                updateFirebase: false,
+                primaryNewValue: newValue);
+          },
+          onChangeEnd: (double newValue){
+            generalHandler.updateSignalSettings(
+                setting: "Hold Open Time",
+                updateFirebase: true,
+                primaryNewValue: newValue);
           },
           min: 0.1,
           max: 2,
@@ -634,11 +660,20 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           title: "Co Con Time",
           value: advancedSettings.timeCoCon,
           onChanged: (double newValue){
-            generalHandler.updateSignalSettings(setting: "Co Con Time", primaryNewValue: newValue);
-          },
-          min: 0.05,
-          max: 0.25,
-          decimals: 2
+            generalHandler.updateSignalSettings(
+                setting: "Co Con Time",
+                updateFirebase: false,
+                primaryNewValue: newValue);
+            },
+            onChangeEnd: (double newValue){
+              generalHandler.updateSignalSettings(
+                  setting: "Co Con Time",
+                  updateFirebase: true,
+                  primaryNewValue: newValue);
+            },
+            min: 0.05,
+            max: 0.25,
+            decimals: 2
         ),
       ],
     );
@@ -663,8 +698,17 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
             title: "Alt Switch Time",
             value: advancedSettings.timeAltSwitch,
             onChanged: (double newValue){
-              generalHandler.updateSignalSettings(setting: "Alt Switch Time", primaryNewValue: newValue);
+              generalHandler.updateSignalSettings(
+                  setting: "Alt Switch Time",
+                  updateFirebase: false,
+                  primaryNewValue: newValue);
             },
+          onChangeEnd: (double newValue){
+            generalHandler.updateSignalSettings(
+                setting: "Alt Switch Time",
+                updateFirebase: true,
+                primaryNewValue: newValue);
+          },
             min: 0.1,
             max: 2,
         ),
@@ -689,7 +733,16 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           title: "Fast/Close time",
           value: advancedSettings.timeFastClose,
           onChanged: (double newValue){
-            generalHandler.updateSignalSettings(setting: "Fast/Close Time", primaryNewValue: newValue);
+            generalHandler.updateSignalSettings(
+                setting: "Fast/Close Time",
+                updateFirebase: false,
+                primaryNewValue: newValue);
+          },
+          onChangeEnd: (double newValue){
+            generalHandler.updateSignalSettings(
+                setting: "Fast/Close Time",
+                updateFirebase: true,
+                primaryNewValue: newValue);
           },
           min: 0.1,
           max: 2,
@@ -698,7 +751,16 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
           title: "Fast/Close Level",
           value: advancedSettings.levelFastClose,
           onChanged: (double newValue){
-            generalHandler.updateSignalSettings(setting: "Fast/Close Level", primaryNewValue: newValue);
+            generalHandler.updateSignalSettings(
+                setting: "Fast/Close Level",
+                updateFirebase: false,
+                primaryNewValue: newValue);
+          },
+          onChangeEnd: (double newValue){
+            generalHandler.updateSignalSettings(
+                setting: "Fast/Close Level",
+                updateFirebase: true,
+                primaryNewValue: newValue);
           },
           min: 0.4,
           max: 4,
@@ -745,7 +807,7 @@ class _AdvancedSettingsState extends State<AdvancedSettingsScreen>{
 class InputGains extends StatelessWidget{
   const InputGains({super.key});
 
-  Widget gainSelector({required String type, Color color = Colors.black, required double value, required Function(double) onChanged}){
+  Widget gainSelector({required String type, Color color = Colors.black, required double value, required Function(double) onChanged, required Function(double) onChangeEnd}){
     return Padding(
       padding: const EdgeInsets.fromLTRB(15, 5, 15, 5),
       child: Row(
@@ -758,7 +820,8 @@ class InputGains extends StatelessWidget{
             child: Slider(
               activeColor: color,
               value: value,
-              onChanged: onChanged
+              onChanged: onChanged,
+              onChangeEnd: onChangeEnd,
             ),
           ),
         ],
@@ -782,6 +845,13 @@ class InputGains extends StatelessWidget{
             onChanged: (double newValue){
               generalHandler.updateSignalSettings(
                   setting: "Signal A Gain",
+                  updateFirebase: false,
+                  primaryNewValue: newValue);
+            },
+            onChangeEnd: (double newValue){
+              generalHandler.updateSignalSettings(
+                  setting: "Signal A Gain",
+                  updateFirebase: true,
                   primaryNewValue: newValue);
             },
             color: colorA
@@ -792,8 +862,15 @@ class InputGains extends StatelessWidget{
             onChanged: (double newValue){
               generalHandler.updateSignalSettings(
                   setting: "Signal B Gain",
+                  updateFirebase: false,
                   primaryNewValue: newValue);
             },
+          onChangeEnd: (double newValue){
+            generalHandler.updateSignalSettings(
+                setting: "Signal B Gain",
+                updateFirebase: true,
+                primaryNewValue: newValue);
+          },
           color: colorB,
         ),
       ],

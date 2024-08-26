@@ -587,7 +587,7 @@ class SignalSettings {
 
   @override
   String toString() {
-    return "signalAon:$signalAon,signalAmax:$signalAmax,signalBon:$signalBon,signalBmax:$signalBmax,signalAgain:$signalAgain,signalBgain:$signalBgain";
+    return "signalAon:${signalAon.toStringAsFixed(1)},signalAmax:${signalAmax.toStringAsFixed(1)},signalBon:$signalBon,signalBmax:$signalBmax,signalAgain:$signalAgain,signalBgain:$signalBgain";
   }
 
 }
