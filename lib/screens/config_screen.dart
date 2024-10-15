@@ -50,7 +50,7 @@ class _ConfigScreenState extends State<ConfigScreen>{
           configName: tempData["configName"],
           config: tempData["config"],
           clinician: tempData["clinician"],
-          dateSaved: tempData["date"]));
+          dateSaved: tempData["dateSaved"]));
     }
     onlineConfigs.sort((a, b) => b.dateSaved.compareTo(a.dateSaved));
     getActiveConfig();
@@ -94,6 +94,7 @@ class _ConfigScreenState extends State<ConfigScreen>{
       );
     }
 
+    /*
     else if(!firebaseHandler.loggedIn){
       return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
@@ -137,6 +138,7 @@ class _ConfigScreenState extends State<ConfigScreen>{
         ),
       );
     }
+    */
     checkActiveConfig();
     return Scaffold(
       floatingActionButtonLocation: FloatingActionButtonLocation.endTop,
@@ -177,7 +179,7 @@ class _ConfigScreenState extends State<ConfigScreen>{
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  IconButton(
+                  firebaseHandler.loggedIn? IconButton(
                       onPressed: () async{
                         await showDialog(
                             context: context,
@@ -187,7 +189,7 @@ class _ConfigScreenState extends State<ConfigScreen>{
                         refreshConfigs();
                       },
                       icon: const Icon(Icons.add)
-                  ),
+                  ):const SizedBox(),
                   const Text("Online Configs", style: TextStyle(fontSize: 30),),
                   IconButton(
                       onPressed: (){
@@ -211,18 +213,21 @@ class _ConfigScreenState extends State<ConfigScreen>{
                     return Dismissible(
                       key: Key(config.documentID),
                         confirmDismiss: (direction) async{
-                        print("dismissed");
-                        if(config.clinician || config.userID != firebaseHandler.currentUser!.uid){
-                          return false;
-                        }
-                        else if (activeConfig!=null && config.documentID == activeConfig!.documentID){
-                          return false;
-                        }
-                            final result = await showDialog(
-                            context: context,
-                            builder: (context) =>
-                                confirmConfigChangeDialog(config, "Are you sure you want to permanently delete \"${config.configName}\"?")
-                            );
+                          print("dismissed");
+                          if(!firebaseHandler.loggedIn){
+                            return false;
+                          }
+                          else if(config.clinician || config.userID != firebaseHandler.currentUser!.uid){
+                            return false;
+                          }
+                          else if (activeConfig!=null && config.documentID == activeConfig!.documentID){
+                            return false;
+                          }
+                          final result = await showDialog(
+                          context: context,
+                          builder: (context) =>
+                              confirmConfigChangeDialog(config, "Are you sure you want to permanently delete \"${config.configName}\"?")
+                          );
                           return result;
                         },
                         onDismissed: (direction){
@@ -273,13 +278,16 @@ class _ConfigScreenState extends State<ConfigScreen>{
         leading: Image.asset(
           config.clinician?'assets/images/logo_grey.png':'assets/images/logo.png', fit: BoxFit.contain, height: 50,),
         onTap: () async{
+          if(!firebaseHandler.loggedIn){
+            return;
+          }
             await showDialog(
                 context: context,
                 builder: (context) =>
                     changeConfigNameDialog(config)
             );
         },
-        onLongPress: ()async{
+        onLongPress: () async{
           if(activeConfig == null || activeConfig!.documentID!=config.documentID) {
             final result = await showDialog(
                 context: context,

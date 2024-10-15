@@ -29,6 +29,7 @@ class FirebaseHandler extends ChangeNotifier{
   Future<void> init() async{
     await initializeFirebase();
     initializeAuthStatus();
+    //Provider.of<FirebaseHandler>(context, listen: false).setupNewUser(Provider.of<GeneralHandler>(context, listen:false).currentUser); //TODO: move this to when a user is created
   }
 
   Future<void> initializeFirebase() async{
@@ -107,6 +108,11 @@ class FirebaseHandler extends ChangeNotifier{
     //set the general handler
 
 
+  }
+
+  void setupNewUser(RebelUser user){
+    updateHandSettings(user);
+    updateHandActions(user);
   }
 
 
@@ -223,11 +229,13 @@ class FirebaseHandler extends ChangeNotifier{
     });
   }
 
+  //#region Hand Actions and Settings
   /// takes a user object and uses the data to update the online database
   ///
-  Future<void> updateHandActions(RebelUser user){
+  Future<void>? updateHandActions(RebelUser user){
     if(!_loggedIn){
-      throw Exception('Must be logged in to update User Details');
+      print("User Details Not updated");
+      return null;
     }
     return FirebaseFirestore.instance
         .collection('actionSettings').doc(FirebaseAuth.instance.currentUser!.uid)
@@ -271,6 +279,7 @@ class FirebaseHandler extends ChangeNotifier{
     }
     final context = navigatorKey.currentContext!;
     var generalHandler = Provider.of<GeneralHandler>(context, listen: false);
+    print(FirebaseAuth.instance.currentUser!.uid);
     final handSettings = await FirebaseFirestore.instance
         .collection('handSettings')
         .doc(FirebaseAuth.instance.currentUser!.uid).get();
@@ -293,6 +302,9 @@ class FirebaseHandler extends ChangeNotifier{
       print("One or more fields were not present in your online profile, please contact us");
     }
   }
+  //#endregion
+
+  //#region Configs
 
   ///Gets all available configs set in the database
   /// Arguments
@@ -301,22 +313,51 @@ class FirebaseHandler extends ChangeNotifier{
   /// Returns
   /// - Firebase collection
   dynamic getHandConfigs(String handID) async {
-    if(!_loggedIn){
-      throw Exception('Must be logged in to update User Details');
-    }
+
     QuerySnapshot querySnapshot = await FirebaseFirestore.instance
         .collection('handConfigurations')
         .doc(handID).collection('savedConfigs').get();
 
+    final queryList = querySnapshot.docs.map((doc) => doc).toList();
+    if(queryList.isEmpty){
+      await createInitialConfig(handID);
+      QuerySnapshot querySnapshot = await FirebaseFirestore.instance
+          .collection('handConfigurations')
+          .doc(handID).collection('savedConfigs').get();
+    }
     return querySnapshot.docs.map((doc) => doc).toList();
+  }
+
+  /// Creates the config file for a Hand if it does not already exist
+  /// Arguments
+  /// - String: [handID]
+  dynamic createInitialConfig(String handID) async{
+    final context = navigatorKey.currentContext!;
+    final generalHandler = Provider.of<GeneralHandler>(context, listen: false);
+    var docID = "";
+    await FirebaseFirestore.instance
+        .collection("handConfigurations").doc(handID)
+        .collection("savedConfigs").add(<String, dynamic>{
+      "userID" : FirebaseAuth.instance.currentUser!.uid,
+      "config" : generalHandler.currentUser.configToJSON(),
+      "configName" : "Initial Config",
+      "clinician" : true,
+      "dateSaved" : DateTime.timestamp(),
+    }).then((DocumentReference doc) => {docID = doc.id});
+    await FirebaseFirestore.instance
+        .collection("handConfigurations").doc(handID).set(<String, dynamic>{
+      "name" : "Rebel Bionics Hand",
+      "active" : docID
+    }
+    );
   }
 
 
   ///Updates the name of a config saved by the current user
   /// Arguments
-  /// - String: handID
-  /// - String: configID
-  /// - String: newName
+  /// - String: [handID]
+  /// - String: [configID]
+  /// - String: [newName]
   ///
   /// Returns
   /// - Void
@@ -358,7 +399,7 @@ class FirebaseHandler extends ChangeNotifier{
           "config" : configJSON,
           "configName" : configName,
           "clinician" : false,
-          "date" : DateTime.timestamp(),
+          "dateSaved" : DateTime.timestamp(),
     }).then((DocumentReference doc) => {docID = doc.id});
     return docID;
   }
@@ -367,19 +408,21 @@ class FirebaseHandler extends ChangeNotifier{
   Future<void> setActiveConfig(String handID, String configId){
     return FirebaseFirestore.instance
         .collection("handConfigurations").doc(handID).update(<String, dynamic>{
-          "active" : configId
+          "active" : configId,
     });
   }
 
   ///Returns the id of the config noted to be active
   Future<dynamic> getActiveConfigID(String handID) async{
-    if(!_loggedIn){
-      throw Exception('Must be logged in to update User Details');
-    }
     DocumentSnapshot documentSnapshot = await FirebaseFirestore.instance
         .collection('handConfigurations')
         .doc(handID).get();
-    return documentSnapshot["active"];
+    if(documentSnapshot.exists){
+      return documentSnapshot["active"];
+    }
+    else{
+      return Null;
+    }
   }
 
 
@@ -392,12 +435,29 @@ class FirebaseHandler extends ChangeNotifier{
         .doc(handID).collection("savedConfigs").doc(configID).delete();
   }
 
-//TODO:
-  // [X] 0. add a page that is used to select a grip
-  // [ ] 1. integrate the setting syncing with the firebase with what i have at the moment
-  // [ ] 2. create functions for converting to and from JSON
-  // [ ] 3. add functions for getting and adding configs from firestore
-  //
+  //#endregion
+
+  //#region Hand Names
+  Future<void> setHandName(String handID, String newName) async{
+    await FirebaseFirestore.instance
+        .collection("handConfigurations").doc(handID).update(<String, dynamic>{
+        "name" : newName,
+           });
+    notifyListeners();
+  }
+
+  Future<String> getHandName(String handID) async{
+    final query = await FirebaseFirestore.instance
+        .collection("handConfigurations").doc(handID).get();
+    if (query.exists){
+      return query.data()!["name"];
+    }
+    else{
+      return "";
+    }
+  }
+
+  //#endregion
 
   //#endregion
 }
