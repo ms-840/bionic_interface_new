@@ -1,3 +1,4 @@
+import 'package:bionic_interface/data_handling/ble_interface.dart';
 import 'package:bionic_interface/general_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -7,100 +8,63 @@ import 'package:go_router/go_router.dart';
 // it should allow you to select and connect to a nearby hand and prompt you where to go?
 // maybe have ble connection be a thing that happens before, also need something to log in
 
-class HomePage extends StatelessWidget{
+class HomePage extends StatelessWidget {
   const HomePage({super.key});
-
-  /*
-  elements on this page:
-    - show ble connection status (possibly in a corner?)
-    - put up a pop up to connect to the correct device
-    - navigate to other sections (only sections visible according to access)
-   */
 
   @override
   Widget build(BuildContext context) {
+    ensureDisconnected(context);
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.home),
+          onPressed: (){
+            context.go("/");
+          },
+        ),
         title: const Text("Rebel Bionics"),
         actions: [
           const SizedBox.shrink(),
-          Image.asset('assets/images/logo.png', fit: BoxFit.contain, height: 50,),
-          const SizedBox(width: 10,)
+          IconButton(
+              icon: Image.asset('assets/images/logo.png', fit: BoxFit.contain),
+              iconSize: 50,
+              padding: EdgeInsets.zero,
+              onPressed: (){
+                if(Provider.of<FirebaseHandler>(context, listen: false).loggedIn){
+                  context.go("/profile");
+                }
+                else{
+                  context.go("/sign-in");
+                }
+              }
+          ),          const SizedBox(width: 10,)
         ],
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          bleStatusButtonCard(context),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                  onPressed: (){
-                    //Todo this should only be available when connected + permissions are right
-                    //Navigator.popAndPushNamed(context, "/grip");
-                    context.go("/grip");
-                  },
-                  child: const Text("To Settings"),
-              ),
-              ElevatedButton(
-                onPressed: (){
-                  //Todo this should only be available when connected + permissions are right
-                  //Navigator.popAndPushNamed(context, "/plot");
-                  context.go("/plot");
-                },
-                child: const Text("To Plot"),
-              ),
-            ],
-          ),
-          newUserButtonCard(context),
-          ElevatedButton(
-              onPressed: (){ context.go("/selectGrip");},
-              child: const Text("Grip Selection Overview")
-          ),
-
-          ElevatedButton(onPressed: (){ context.go("/test");}, child: const Text("Test page")),
-        ],
-      ),
-
-    );
-  }
-
-  Widget bleStatusButtonCard(BuildContext context){
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 10, 20, 10),
-      child: Card(
-        clipBehavior: Clip.hardEdge,
-        child: ListTile(
-          leading: const Icon(Icons.bluetooth, color: Colors.white,),
-          title: const Text("Hand Status", style: TextStyle(color: Colors.white),),
-          splashColor: Theme.of(context).colorScheme.secondary,
-          tileColor: Theme.of(context).colorScheme.primary,
-          onTap: (){
-            //Navigator.popAndPushNamed(context, "/ble");
-            context.push("/ble");
-          },
+      body: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          children: [
+            newUserButtonCard(context),
+            BleDeviceList(),
+            refresh(context),
+              ],
         ),
       ),
     );
   }
 
-  Widget toSettingsButtonCard(BuildContext context){
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
-      child: Card(
-        clipBehavior: Clip.hardEdge,
-        child: ListTile(
-          leading: const Icon(Icons.front_hand, color: Colors.white,),
-          title: const Text("Hand Settings", style: TextStyle(color: Colors.white),),
-          splashColor: Theme.of(context).colorScheme.secondary,
-          tileColor: Theme.of(context).colorScheme.primary,
-          onTap: (){
-            //Navigator.popAndPushNamed(context, "/grip");
-            context.push("/grip");
+  void ensureDisconnected(BuildContext context){
+    if(Provider.of<BleInterface>(context, listen:false).connected){
+      Provider.of<BleInterface>(context, listen:false).disconnect();
+    }
+  }
+
+  Widget refresh(BuildContext context){
+    return TextButton(
+        onPressed: (){
+          Provider.of<BleInterface>(context, listen:false).searchForBLE();
           },
-        ),
-      ),
+        child: const Text("Refresh")
     );
   }
 
@@ -114,7 +78,6 @@ class HomePage extends StatelessWidget{
           title:  Provider.of<FirebaseHandler>(context, listen: true).loggedIn?
             const Text("View Profile", style: TextStyle(color: Colors.white))
                 : const Text("Login", style: TextStyle(color: Colors.white),),
-          splashColor: Theme.of(context).colorScheme.secondary,
           tileColor: Theme.of(context).colorScheme.primary,
           onTap: (){
             //Navigator.popAndPushNamed(context, "/selectAccount");
@@ -128,3 +91,52 @@ class HomePage extends StatelessWidget{
   }
 
 }
+
+/// This should be a big swipable button that shows you the available rebel devices, if theres multiple if should show the
+/// when clicked, the app should connect to the device and go to the device screen
+/// only have an outline if no device is found
+class BleDeviceList extends StatelessWidget{
+
+  late BleInterface bleHandler;
+
+  @override
+  Widget build(BuildContext context) {
+    bleHandler = Provider.of<BleInterface>(context, listen:true);
+    var devices = bleHandler.foundBleDevices;
+    return devices.length > 0? Expanded(
+      child: DefaultTabController(
+          length: devices.length,
+          child: TabBarView(
+              children: [
+                for(var device in devices) deviceTabs(context, device.platformName, device.remoteId.toString())
+              ]
+      ),
+    ),
+    ) : const Text("No devices found");
+  }
+
+  ///Returns a widget to display an available device
+  Widget deviceTabs(BuildContext context, String deviceName, String deviceId){
+    return InkWell(
+      onTap: () async {
+        print("Connected");
+        var result = await bleHandler.connectToDevice(deviceId);
+        if (result){
+          context.go("/ble");
+        }
+      },
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Image.asset('assets/images/grips/relaxed.png', fit:BoxFit.contain),
+          Text(deviceName),
+          Text(deviceId)
+        ],
+      ),
+    );
+  }
+
+
+}
+

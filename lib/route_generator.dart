@@ -1,7 +1,10 @@
+import 'package:bionic_interface/firebase_handler.dart';
+import 'package:bionic_interface/general_handler.dart';
 import 'package:bionic_interface/main.dart';
 import 'package:bionic_interface/screens/config_screen.dart';
 import 'package:firebase_ui_auth/firebase_ui_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'screens/home.dart';
 import 'screens/data_plot.dart';
 import 'screens/grip_preferences.dart';
@@ -19,7 +22,7 @@ final router = GoRouter(
   routes: [
     GoRoute(
         path: '/', //Default, homescreen
-        builder: (context, state) => const BleStatusPage(),
+        builder: (context, state) => const HomePage(),
         routes: [
           GoRoute(
               path: 'sign-in',
@@ -74,6 +77,10 @@ final router = GoRouter(
               ],
           ),
           GoRoute(
+              path: 'ble',
+              builder: (context, state) => BleStatusPage(),
+          ),
+          GoRoute(
             path: 'profile',
             builder: (context, state) {
               return ProfileScreen(
@@ -86,40 +93,44 @@ final router = GoRouter(
               );
             },
           ), //Profile screen
-          GoRoute(
-              path: 'plot',
-              builder: (context, state) => const DataPresentationPage(),
-              routes: [
-                GoRoute(
-                  path: 'calibration',
-                  builder: (context, state) => const HandCalibration(),
-                ),
-              ]
-          ), //Data Presentation Page
-          GoRoute(
-            path: 'grip',
-            builder: (context, state) => const GripSettings(),
-          ), //Grip settings
-          GoRoute(
-            path: 'calibration',
-            builder: (context, state) => const HandCalibration(),
-          ), // Hand Calibration
+
           GoRoute(
             path: 'ble',
             builder: (context, state) => const BleStatusPage(),
+            routes:[
+              GoRoute(
+                  path: 'plot',
+                  builder: (context, state) => const DataPresentationPage(),
+                  routes: [
+                    GoRoute(
+                      path: 'calibration',
+                      builder: (context, state) => const HandCalibration(),
+                    ),
+                  ]
+              ), //Data Presentation Page
+              GoRoute(
+                path: 'grip',
+                builder: (context, state) => const GripSettings(),
+              ), //Grip settings
+              GoRoute(
+                path: 'calibration',
+                builder: (context, state) => const HandCalibration(),
+              ),
+              GoRoute(
+                path: 'selectGrip',
+                builder: (context, state) => const GripSelector(),
+              ),
+              GoRoute(
+                path: 'test',
+                builder: (context, state) => TestScreen(),
+              ),
+              GoRoute(
+                path: 'config',
+                builder: (context, state) => const ConfigScreen(),
+              ),// Hand Calibration
+            ]
           ),
-          GoRoute(
-            path: 'selectGrip',
-            builder: (context, state) => const GripSelector(),
-          ),
-          GoRoute(
-              path: 'test',
-            builder: (context, state) => TestScreen(),
-          ),
-          GoRoute(
-              path: 'config',
-            builder: (context, state) => const ConfigScreen(),
-          ),
+
         ],
     ),
 
