@@ -12,7 +12,7 @@ class BleInterface extends ChangeNotifier{
   // this should be used to connect to and receive information from the BLE device
 
   //initialize
-  List<BluetoothDevice> foundBleDevices = []; //required
+  List<BluetoothDevice> foundBleDevices = [BluetoothDevice(remoteId: const DeviceIdentifier("0123456789")), BluetoothDevice(remoteId: const DeviceIdentifier("other device"))]; //required
   late BluetoothDevice selectedDevice;
   String foundDeviceId = "";
 
@@ -30,7 +30,7 @@ class BleInterface extends ChangeNotifier{
   Guid serviceUuid = Guid("00000000-cc7a-482a-984a-7f2ed5b3e58f");
 
   /// The serial number of the device
-  /// is null if
+  /// is null if not connected
   String? deviceSerialNumber = "0123456789";
 
   late BluetoothService targetService;
@@ -124,6 +124,9 @@ class BleInterface extends ChangeNotifier{
   //#endregion
 
   void searchForBLE() async {
+    foundBleDevices = [BluetoothDevice(remoteId: const DeviceIdentifier("0123456789")), BluetoothDevice(remoteId: const DeviceIdentifier("other device"))];
+    notifyListeners();
+    return ;//TODO uncomment this
     if(permissionsGranted) { //only run this if the permissions have been handled
 
       // Setup Listener for scan results.
@@ -156,9 +159,12 @@ class BleInterface extends ChangeNotifier{
   var previousConnectedDevices = 0;
   late StreamSubscription<int> mtuSubscription;
 
-  Future<bool> connectToDevice() async{
+  Future<bool> connectToDevice(String selectedDeviceId) async{
+    connected = true;
+    notifyListeners();
+    return true; //TODO: this needs to be removed to let the rest of the function work
     connectionError = false;
-    selectedDevice = foundBleDevices[selectedDeviceIndex];
+    var selectedDevice = foundBleDevices.where((d) => d.remoteId.str == selectedDeviceId).first;
     print("Attempting to connect to ${selectedDevice.platformName}"
         " with id ${selectedDevice.remoteId}");
     previousConnectedDevices = (await FlutterBluePlus.connectedSystemDevices).length;
@@ -322,10 +328,10 @@ class BleInterface extends ChangeNotifier{
   //#endregion
 
 
-  void disconnect() async {
+  Future<bool> disconnect() async {
     // Disconnect from device
     disconnectDesired = true;
-    await selectedDevice.disconnect();
+    //await selectedDevice.disconnect(); //TODO: uncomment this
     connected = false;
     servicesFound = false;
     deviceSetUp = false;
@@ -333,7 +339,7 @@ class BleInterface extends ChangeNotifier{
     disconnectDesired = false;
     notifyListeners();
     receivedDataBuffer.emptyBuffer();
-
+    return true;
   }
 
   void stopScan() async {

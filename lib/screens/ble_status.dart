@@ -1,3 +1,4 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:bionic_interface/firebase_handler.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,7 @@ import 'package:provider/provider.dart';
 
 import 'package:bionic_interface/general_handler.dart';
 import 'package:bionic_interface/data_handling/ble_interface.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 
 class BleStatusPage extends StatefulWidget{
@@ -20,13 +22,16 @@ class _BleStatusPageState extends State<BleStatusPage>{
 
   late GeneralHandler generalHandler;
   late BleInterface bleHandler;
+  late FirebaseHandler firebaseHandler;
 
   late ColorScheme theme;
+  String deviceName = "";
 
   @override
   Widget build(BuildContext context) {
     generalHandler = context.watch<GeneralHandler>();
     bleHandler = context.watch<BleInterface>();
+    firebaseHandler = context.watch<FirebaseHandler>();
 
     theme = Theme.of(context).colorScheme;
 
@@ -67,6 +72,11 @@ class _BleStatusPageState extends State<BleStatusPage>{
     );
   }
 
+  void updateDeviceName() async{
+    deviceName = await firebaseHandler.getHandName(bleHandler.deviceSerialNumber!);
+    setState(() {});
+  }
+
   Widget connectedDevice(){
     if(false){
       return Column(
@@ -82,6 +92,9 @@ class _BleStatusPageState extends State<BleStatusPage>{
         ],
       );
     }
+    if(deviceName==""){
+      updateDeviceName();
+    }
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
@@ -91,20 +104,25 @@ class _BleStatusPageState extends State<BleStatusPage>{
             clipBehavior: Clip.hardEdge,
             child: InkWell(
               onTap: () async {
-                //TODO: open a pop up with
-                print("Information card was tapped");
                 //(When tapping on it it has QR code that clinician could
                 //    use to add device to their things, or get more info )
                 // also should contain the disconnect button so its hidden but not gone
                 await showDialog(
                     context: context,
                     builder: (context) =>
-                        const DeviceDetailsDialog()
+                        DeviceDetailsDialog(
+                          deviceName: deviceName,
+                          deviceID: bleHandler.deviceSerialNumber!,)
                 );
                 setState(() {}); //Reloads page in case there was a disconnection
               },
-              onLongPress: (){
-                print("Long press detected");
+              onLongPress: () async{
+                await showDialog(
+                    context: context,
+                    builder: (context) =>
+                        changeHandNameDialog()
+                );
+                setState(() {});
               },
               child:  Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -113,15 +131,14 @@ class _BleStatusPageState extends State<BleStatusPage>{
                     padding: const EdgeInsets.all(10.0),
                     child: Icon(Icons.bluetooth_connected, size: 60, color: theme.primary,),
                   ),
-                  const Column(
+                  Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       //Text(bleHandler.selectedDevice.platformName),
                       //Text(bleHandler.selectedDevice.remoteId.toString()),
-                      Text("Device Name ", style: TextStyle(fontSize: 20),),
-                      //TODO: Replace with autosizeText widget - https://pub.dev/documentation/auto_size_text/latest/
+                      AutoSizeText(deviceName,maxLines: 1,),
                       //The text can only be up to 19 characters long, otherwise the text needs to be smaller
-                      Text("ID: 0123456789"),
+                       AutoSizeText("ID: ${bleHandler.deviceSerialNumber}", maxLines: 1,),
                     ],
                   ),
                   /*ElevatedButton( //Im not certain i want this here actually
@@ -151,29 +168,21 @@ class _BleStatusPageState extends State<BleStatusPage>{
           const SizedBox(height: 15,),
           ElevatedButton(
             onPressed: (){
-              print("This should lead to the grip settings page");
-              context.go("/grip");
+              context.go("/ble/grip");
             },
             child: const Text("Grip Settings"),
           ),
           const SizedBox(height: 15,),
           ElevatedButton(
             onPressed: (){
-              print("This should lead to the Plot page where gains can be set as well");
-              context.go("/plot");
+              context.go("/ble/plot");
             },
             child: const Text("Plot"),
           ),
           const SizedBox(height: 15,),
           ElevatedButton(
               onPressed: (){
-                print("This should go to a page where configurations/advanced settings "
-                    "can be set and saved to/recovered from firebase");
-                // sync button with firebase
-                // option to save current config
-                // list of available backed up configs
-                //    when double tapped, gives dialog to ask if the config file should overwrite current things
-                context.go("/config");
+                context.go("/ble/config");
               },
               child: const Text("Hand Configurations"),
           ),
@@ -182,6 +191,52 @@ class _BleStatusPageState extends State<BleStatusPage>{
 
 
         ],
+      ),
+    );
+  }
+
+  Dialog changeHandNameDialog(){
+    var controller = TextEditingController();
+    String defaultName = "Rebel Bionics Hand";
+    return Dialog(
+      child: Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text("Change Hand Name"),
+            TextField(
+              controller: controller,
+              onSubmitted: (String value) async{
+                if(value.isEmpty){
+                  controller.text = defaultName;
+                }
+              },
+            ),
+            Row(
+              children: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                  child: const Text('Cancel'),
+                ),
+                TextButton(
+                  onPressed: () async{
+                    if(controller.text.isEmpty){
+                      controller.text = defaultName;
+                    }
+                    firebaseHandler.setHandName(bleHandler.deviceSerialNumber!, controller.text);
+                    deviceName = "";
+                    Navigator.pop(context);
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -200,7 +255,13 @@ class _BleStatusPageState extends State<BleStatusPage>{
 }
 
 class DeviceDetailsDialog extends StatelessWidget{
-  const DeviceDetailsDialog({super.key});
+  DeviceDetailsDialog({
+    super.key,
+    required this.deviceName,
+    required this.deviceID,
+  });
+  String deviceName = "";
+  String deviceID = "";
 
   //Stateless since we are not keeping any data specifically in this class but pulling it all from the BLE Interface
 
@@ -221,14 +282,12 @@ class DeviceDetailsDialog extends StatelessWidget{
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const Column(
+                    Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [Text("Device Name ", style: TextStyle(fontSize: 20),),
-                        //TODO: Replace with autosizeText widget - https://pub.dev/documentation/auto_size_text/latest/
-                        //The text can only be up to 19 characters long, otherwise the text needs to be smaller
-                        Text("ID: 0123456789"),],
+                      children: [AutoSizeText(deviceName, maxLines: 1,),
+                        AutoSizeText("ID: $deviceID"),],
                     ),
-                    Expanded(child: Container()),
+                    //Expanded(child: Container()),
                     Padding(
                       padding: const EdgeInsets.all(5.0),
                       child: Transform.rotate(
@@ -237,21 +296,20 @@ class DeviceDetailsDialog extends StatelessWidget{
                           size: 60, color: theme.secondary,),
                       ),
                     ),
-                    Text(
+                    AutoSizeText(
                       bleInterface.batteryStatus!=null?
-                      "${bleInterface.batteryStatus}%":"??",
-                      style: const TextStyle(fontSize: 20),),
+                      "${bleInterface.batteryStatus}%":"??"),
 
                   ],
                 ),
               ),
 
               const SizedBox(height: 10,),
-              AspectRatio(
-                aspectRatio: 1,
-                child: Container(
-                  decoration: BoxDecoration(border: Border.all(color: Colors.black)),
-                  child: const Text("<QR CODE OF DEVICE ID HERE>"),
+              Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: QrImageView(
+                  data: deviceID,
+                  version: QrVersions.auto,
                 ),
               ),
               const SizedBox(height: 10,),
@@ -265,10 +323,12 @@ class DeviceDetailsDialog extends StatelessWidget{
                           backgroundColor: theme.secondary,
                           foregroundColor: theme.background
                       ),
-                      onPressed: (){
+                      onPressed: ()async{
                         //bleInterface.disconnect(); //TODO: implement BLE things
                         print("Disconnect button pushed");
                         Navigator.pop(context);
+                        await bleInterface.disconnect();
+                        context.go("/");
                       },
                       child: const Text("Disconnect")
                   ),
